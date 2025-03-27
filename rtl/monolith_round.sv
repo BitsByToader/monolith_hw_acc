@@ -14,7 +14,8 @@ module monolith_round #(
     input logic reset,
     
     input bit [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
-    output bit [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1]
+    output bit [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
+    output bit valid
 );
 
     bit [WORD_WIDTH-1:0] state_after_bars [0:STATE_SIZE-1];
@@ -32,7 +33,8 @@ module monolith_round #(
 
     monolith_concrete #(WORD_WIDTH, STATE_SIZE) concrete(
         clk, reset,
-        state_after_bricks, state_out
+        state_after_bricks, state_out,
+        valid
     );
 
 endmodule

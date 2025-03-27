@@ -2,6 +2,7 @@
 `define CIRC_MTX_VEC_MUL_SV
 
 `include "vector_dot_product.sv"
+`include "vector_dot_product_mc.sv"
 
 /// Computes a matrix-vector-multiplication,
 /// where the matrix is circulant.
@@ -18,8 +19,12 @@ module circ_mtx_vec_mul #(
     input bit [WORD_WIDTH-1:0] mtx_row [0:MTX_SIZE-1],
     input bit [WORD_WIDTH-1:0] vec [0:MTX_SIZE-1],
     
-    output bit [WORD_WIDTH-1:0] result [0:MTX_SIZE-1]
+    output bit [WORD_WIDTH-1:0] result [0:MTX_SIZE-1],
+    output bit valid
 );
+
+    bit [MTX_SIZE-1:0] row_valids;
+    assign valid = &row_valids;
 
     genvar i;
     generate
@@ -27,12 +32,13 @@ module circ_mtx_vec_mul #(
         for ( i = 0; i < MTX_SIZE; i = i + 1 ) begin
             bit [WORD_WIDTH-1:0] row [0:MTX_SIZE-1];
             
-            vector_dot_product vdp(
+            vector_dot_product_mc vdp(
                 .clk(clk),
                 .reset(reset),
                 .vec1(row),
                 .vec2(vec),
-                .result(result[i])
+                .result(result[i]),
+                .valid(row_valids[i])
             );
             
             // Generate a shifted row
@@ -43,7 +49,7 @@ module circ_mtx_vec_mul #(
                 end else begin
                     assign row[j] = mtx_row[MTX_SIZE-i+j];
                 end
-            end 
+            end
         end
     endgenerate
 

@@ -11,7 +11,8 @@ module monolith_concrete #(
     input logic reset,
     
     input bit [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
-    output bit [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1]
+    output bit [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
+    output bit valid
 );
 
     reg [WORD_WIDTH-1:0] mtx [0:STATE_SIZE-1];
@@ -25,7 +26,8 @@ module monolith_concrete #(
         .reset(reset), 
         .mtx_row(mtx),
         .vec(state_in),
-        .result(state_out)
+        .result(state_out),
+        .valid(valid)
     );
 
 endmodule
