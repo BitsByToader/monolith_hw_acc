@@ -18,7 +18,7 @@ module monolith_concrete #(
     reg [WORD_WIDTH-1:0] mtx [0:STATE_SIZE-1];
 
     initial begin
-        $readmemh("../testbench/m32_mds_mtx.mem", mtx); // TODO: Rename file to m31...
+        $readmemh("m32_mds_mtx.mem", mtx); // TODO: Rename file to m31...
     end
     
     circ_mtx_vec_mul #(WORD_WIDTH, STATE_SIZE) mvmul(

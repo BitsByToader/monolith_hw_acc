@@ -1,19 +1,18 @@
-`include "monolith_round.sv"
+`include "monolith_hash.sv"
 
-module monolith_round_tb();
+module monolith_hash_tb();
 
     reg clk, reset, valid;
     reg [30:0] in [0:15];
     reg [30:0] out [0:15];
     reg [30:0] correct_out [0:15];
     
-    monolith_round round(
+    monolith_hash hash(
         .clk(clk),
         .reset(reset),
         .state_in(in),
         .state_out(out),
-        .valid(valid),
-        .pre_round(0)
+        .valid(valid)
     );
     
     initial begin
@@ -24,9 +23,8 @@ module monolith_round_tb();
     always #5 clk <= ~clk;
     
     initial begin
-        #10
         $readmemh("input_vec_16.mem", in);
-        $readmemh("monolith_round_out.mem", correct_out);
+        $readmemh("monolith_hash_out.mem", correct_out);
         
         @(valid == 1);
         for (int i = 0; i < 16; i = i+1) begin

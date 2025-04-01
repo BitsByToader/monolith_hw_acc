@@ -3,6 +3,9 @@
 
 `include "monolith_round.sv"
 
+// TODO: Add AXI Stream interfaces to top.
+// TODO: Mod reduce data data from AXI before hash.
+
 module monolith_top(
     input logic clk,
     input logic reset,
@@ -48,7 +51,7 @@ module monolith_top(
         end
     end
 
-    monolith_round round(
+    monolith_hash hash(
         .clk(clk),
         .reset(reset),
         .state_in(state_in),
