@@ -1,11 +1,6 @@
 `ifndef MONOLITH_ROUND_SV
 `define MONOLITH_ROUND_SV
 
-`include "monolith_bars.sv"
-`include "monolith_bricks.sv"
-`include "monolith_concrete.sv"
-`include "vector_adder.sv"
-
 module monolith_round #(
     int WORD_WIDTH      = 31,
     int STATE_SIZE      = 16,

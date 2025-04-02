@@ -1,8 +1,6 @@
 `ifndef INFERRED_MULTIPLIER_SV
 `define INFERRED_MULTIPLIER_SV
 
-`include "multiplier_if.svh"
-
 module inferred_multiplier (
     multiplier_input_if.async_rcv inputs,
     multiplier_output_if.async_drv outputs

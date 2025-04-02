@@ -1,9 +1,6 @@
 `ifndef CIRC_MTX_VEC_MUL_SV
 `define CIRC_MTX_VEC_MUL_SV
 
-`include "vector_dot_product.sv"
-`include "vector_dot_product_mc.sv"
-
 /// Computes a matrix-vector-multiplication,
 /// where the matrix is circulant.
 /// The matrix is defined by its first row only,

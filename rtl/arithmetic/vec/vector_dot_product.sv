@@ -1,9 +1,6 @@
 `ifndef VECTOR_DOT_PRODUCT_SV
 `define VECTOR_DOT_PRODUCT_SV
 
-`include "m31_multiplier.sv"
-`include "m31_adder.sv"
-
 /// Computes the dot product of two vectors.
 module vector_dot_product #(
     int WORD_WIDTH = 31,

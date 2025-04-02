@@ -1,8 +1,6 @@
 `ifndef MONOLITH_HASH_SV
 `define MONOLITH_HASH_SV
 
-`include "monolith_round.sv"
-
 module monolith_hash #(
     int WORD_WIDTH      = 31,
     int STATE_SIZE      = 16,

@@ -1,4 +1,4 @@
-`include "monolith_hash.sv"
+`include "../rtl/includes.svh"
 
 module monolith_hash_tb();
 

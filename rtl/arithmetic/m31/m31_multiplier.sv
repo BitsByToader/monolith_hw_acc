@@ -1,9 +1,6 @@
 `ifndef M31_MULTIPLIER_SV
 `define M31_MULTIPLIER_SV
 
-`include "multiplier_if.svh"
-`include "m31_mod_reducer.sv"
-
 module m31_multiplier (
     multiplier_input_if inputs,
     multiplier_output_if outputs

@@ -1,7 +1,7 @@
 `ifndef MONOLITH_TOP_SV
 `define MONOLITH_TOP_SV
 
-`include "monolith_round.sv"
+`include "includes.svh"
 
 // TODO: Add AXI Stream interfaces to top.
 // TODO: Mod reduce data data from AXI before hash.

@@ -1,8 +1,6 @@
 `ifndef MONOLITH_CONCRETE_SV
 `define MONOLITH_CONCRETE_SV
 
-`include "circ_mtx_vec_mul.sv"
-
 module monolith_concrete #(
     int WORD_WIDTH = 31,
     int STATE_SIZE = 16
@@ -18,7 +16,7 @@ module monolith_concrete #(
     reg [WORD_WIDTH-1:0] mtx [0:STATE_SIZE-1];
 
     initial begin
-        $readmemh("m32_mds_mtx.mem", mtx); // TODO: Rename file to m31...
+        $readmemh("m31_mds_mtx.mem", mtx);
     end
     
     circ_mtx_vec_mul #(WORD_WIDTH, STATE_SIZE) mvmul(

@@ -1,8 +1,6 @@
 `ifndef VECTOR_ADDER_SV
 `define VECTOR_ADDER_SV
 
-`include "m31_adder.sv"
-
 /// Adds two vectors together, element wise.
 module vector_adder #(
     int WORD_WIDTH = 31,

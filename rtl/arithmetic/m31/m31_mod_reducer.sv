@@ -1,8 +1,6 @@
 `ifndef M31_MOD_REDUCER_SV
 `define M31_MOD_REDUCER_SV
 
-`include "mod_reduction_if.svh"
-
 module m31_partial_reduce(
     mod_reduction_inout_if.rcv in,
     mod_reduction_inout_if.drv out

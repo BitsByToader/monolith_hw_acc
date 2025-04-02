@@ -1,8 +1,6 @@
 `ifndef MONOLITH_BARS_SV
 `define MONOLITH_BARS_SV
 
-`include "monolith_sbox.sv"
-
 module monolith_bars #(
     int WORD_WIDTH = 31,
     int STATE_SIZE = 16,

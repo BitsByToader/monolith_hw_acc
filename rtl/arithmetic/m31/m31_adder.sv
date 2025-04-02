@@ -1,9 +1,6 @@
 `ifndef M31_ADDER_SV
 `define M31_ADDER_SV
 
-`include "adder_if.svh"
-`include "m31_mod_reducer.sv"
-
 module m31_adder (
     adder_input_if.async_rcv inputs,
     adder_output_if.async_drv outputs

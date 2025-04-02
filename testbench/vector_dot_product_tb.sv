@@ -1,5 +1,4 @@
-`include "vector_dot_product.sv"
-`include "../rtl/vector_dot_product_mc.sv"
+`include "vector_dot_product_mc.sv"
 
 module vec_dp_tb();
 
