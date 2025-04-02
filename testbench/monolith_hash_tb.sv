@@ -31,7 +31,7 @@ module monolith_hash_tb();
             assert(out[i] == correct_out[i]);
         end
         
-        #10 $finish();
+        #100 $finish();
     end
 
 endmodule
