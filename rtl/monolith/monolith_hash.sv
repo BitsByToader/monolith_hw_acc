@@ -116,7 +116,7 @@ module monolith_hash #(
     end
     
     initial begin
-        $readmemh("monolith_6round_constants.mem", round_constants);
+        $readmemh("../constants/monolith_6round_constants.mem", round_constants);
     end
 
 endmodule

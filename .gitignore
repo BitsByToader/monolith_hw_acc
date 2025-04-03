@@ -1,3 +1,10 @@
 # Ignore all files in work_dir, except ~~project rebuild script~~ all tcl scripts.
 work_dir/*
 !work_dir/*.tcl
+
+# Block design and IP integrator tend to generate a lot of files where the .bd (block design) file is held. Ignore them, but keep (block)design files.
+zynq_system/*
+!zynq_system/*.v
+!zynq_system/*.sv
+!zynq_system/*.bd
+zynq_system/*bmstub.v
