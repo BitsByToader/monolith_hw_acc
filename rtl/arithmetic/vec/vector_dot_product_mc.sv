@@ -15,12 +15,15 @@ module vector_dot_product_mc #(
     output bit [WORD_WIDTH-1:0] result,
     output bit valid
 );
+    // TODO: Generate non-pipelined multiplier for values smaller than 2.
+    localparam int DSP_PIPELINE_STAGES = 2;
+    localparam int NEEDED_CYCLES = VECTOR_SIZE+DSP_PIPELINE_STAGES-1;
+    localparam int COUNTER_WIDTH = $clog2(NEEDED_CYCLES);
     
     bit [2*WORD_WIDTH:0] full_result;
+    bit [2*WORD_WIDTH:0] mul_res;
     bit [WORD_WIDTH-1:0] reduced_result, acum_result;
-    bit [$clog2(VECTOR_SIZE)-1:0] counter, next_cnt;
-
-    assign next_cnt = counter + 1;
+    bit [COUNTER_WIDTH-1:0] element_counter;
 
     mod_reduction_inout_if #(.DATA_WIDTH(2*WORD_WIDTH+1)) reduce_in();
     mod_reduction_inout_if #(.DATA_WIDTH(WORD_WIDTH)) reduce_out();
@@ -29,23 +32,43 @@ module vector_dot_product_mc #(
     assign reduce_in.data = full_result;
     assign reduced_result = reduce_out.data;
     
-    // Atempt to infer a MACC via DSP slice.
-    assign full_result = acum_result + vec1[counter] * vec2[counter];
+    // Multiplier
+    multiplier_input_if #(WORD_WIDTH) mul_in();
+    multiplier_output_if #(WORD_WIDTH*2) mul_out();
+    m31_multiplier_pl #(DSP_PIPELINE_STAGES) mul(mul_in, mul_out);
+    
+    assign mul_in.clk = clk;
+    assign mul_in.reset = reset;
+    assign mul_out.clk = clk;
+    assign mul_out.reset = reset;
+    
+    assign mul_in.in1 = vec1[element_counter];
+    assign mul_in.in2 = vec2[element_counter];
+    assign mul_res = mul_out.out;
+
+    // MACC
+    assign full_result = acum_result + mul_res;
 
     always_ff @(posedge clk) begin
         if (reset) begin
-            counter <= 0;
             acum_result <= 0;
         end else begin
-            if ( next_cnt != 0 ) begin
-                counter <= next_cnt;
-                acum_result <= reduced_result;
+            acum_result <= reduced_result;
+        end
+    end
+
+    always @(posedge clk) begin
+        if (reset) begin
+            element_counter <= 0;
+        end else begin
+            if ((element_counter) != NEEDED_CYCLES) begin
+                element_counter <= element_counter + 1;
             end
         end
     end
 
     assign result = reduced_result;
-    assign valid = (counter == VECTOR_SIZE-1);
+    assign valid = (element_counter == NEEDED_CYCLES);
 
 endmodule
 

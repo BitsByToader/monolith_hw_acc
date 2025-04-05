@@ -31,14 +31,14 @@ interface multiplier_input_if #(
         output in2;
         output inputs_valid;
     endclocking
-    modport sync_drv(clocking drv_cb, input clk);
+    modport sync_drv(clocking drv_cb, input clk, input reset);
     
     clocking rcv_cb @(clk);
         input in1;
         input in2;
         input inputs_valid;
     endclocking
-    modport sync_rcv(clocking rcv_cb, input clk);
+    modport sync_rcv(clocking rcv_cb, input clk, input reset);
 endinterface
 
 interface multiplier_output_if #(
@@ -65,13 +65,13 @@ interface multiplier_output_if #(
         output out;
         output output_valid;
     endclocking
-    modport sync_drv(clocking drv_cb, input clk);
+    modport sync_drv(clocking drv_cb, input clk, input reset);
     
     clocking rcv_cb @(clk);
         input out;
         input output_valid;
     endclocking
-    modport sync_rcv(clocking rcv_cb, input clk);
+    modport sync_rcv(clocking rcv_cb, input clk, input reset);
 endinterface
 
 `endif

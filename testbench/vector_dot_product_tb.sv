@@ -34,7 +34,7 @@ module vec_dp_tb();
         @(valid == 1);
         assert(out == 70);
         
-        #10 $finish();
+        #50 $finish();
     end
     
 endmodule

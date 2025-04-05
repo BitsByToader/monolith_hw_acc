@@ -1,6 +1,18 @@
 `ifndef INCLUDES_SVH
 `define INCLUDES_SVH
 
+/// Helper function which resets all values of a bit vector to 0.
+/// When synthesized, will generate hardware to reset the flip-flop.
+/// Wrapped in a class to allow parameterization.
+class reset_vector_wrapper #(int WORD_WIDTH=31, int STATE_SIZE=16);
+    static function void create(inout bit [WORD_WIDTH-1:0] vec [0:STATE_SIZE-1]);
+        integer i;
+        for (i=0; i<STATE_SIZE; i=i+1) begin
+            vec[i] = 0;
+        end
+    endfunction
+endclass
+
 `include "interfaces/adder_if.svh"
 `include "interfaces/mod_reduction_if.svh"
 `include "interfaces/multiplier_if.svh"

@@ -9,7 +9,7 @@ module monolith_round #(
     input logic clk,
     input logic reset,
    
-    input bit pre_round, 
+    input bit pre_round,
     input bit [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
     input bit [WORD_WIDTH-1:0] constants [0:STATE_SIZE-1],
     
@@ -17,52 +17,84 @@ module monolith_round #(
     output bit valid
 );
 
-    bit [WORD_WIDTH-1:0] state_after_bars [0:STATE_SIZE-1];
-    bit [WORD_WIDTH-1:0] state_after_bricks [0:STATE_SIZE-1];    
-    bit [WORD_WIDTH-1:0] state_after_concrete [0:STATE_SIZE-1]; 
-    
-    bit [WORD_WIDTH-1:0] concrete_input [0:STATE_SIZE-1];
-    bit [WORD_WIDTH-1:0] state_after_constants [0:STATE_SIZE-1];
-
     bit pre_round_saved;
     bit [WORD_WIDTH-1:0] input_saved [0:STATE_SIZE-1];
     bit [WORD_WIDTH-1:0] constants_saved [0:STATE_SIZE-1];
-
+    
     // Auxiliary reset used for bars and bricks.
-    // Will disable the two components in the pre round.
-    // Power-saving attempt.
+    // Power-saving attempt in the pre round when they are not used.
     logic aux_reset;
+    assign aux_reset = pre_round_saved ? 1 : reset; // Assumes active-high reset, will hold in reset in pre round.
 
+    bit [WORD_WIDTH-1:0] bars_input [0:STATE_SIZE-1];
+    bit [WORD_WIDTH-1:0] bars_output [0:STATE_SIZE-1];
+    bit bars_valid;
+
+    bit [WORD_WIDTH-1:0] bricks_input [0:STATE_SIZE-1];
+    bit [WORD_WIDTH-1:0] bricks_output [0:STATE_SIZE-1];
+    bit bricks_valid;
+
+    bit [WORD_WIDTH-1:0] concrete_input [0:STATE_SIZE-1];
+    bit [WORD_WIDTH-1:0] concrete_output [0:STATE_SIZE-1];
+    bit concrete_valid;
+
+    bit [WORD_WIDTH-1:0] constants_input [0:STATE_SIZE-1];
+    bit [WORD_WIDTH-1:0] constants_output [0:STATE_SIZE-1];
+    bit constants_valid;
+
+    // Input saved here at reset.
     monolith_bars #(WORD_WIDTH, STATE_SIZE, BAR_OP_COUNT) bars(
         clk, aux_reset,
-        input_saved, state_after_bars
+        bars_input, bars_output
     );
-
+    // Pipeline Stage.
     monolith_bricks #(WORD_WIDTH, STATE_SIZE) bricks(
-        clk, aux_reset,
-        state_after_bars, state_after_bricks
+        clk, (reset | ~bars_valid),
+        bricks_input, bricks_output
     );
-
+    // Pipeline Stage.
     monolith_concrete #(WORD_WIDTH, STATE_SIZE) concrete(
-        clk, reset,
-        concrete_input, state_after_concrete,
-        valid
+        clk, (reset | (pre_round_saved ? reset : ~bricks_valid)),
+        concrete_input, concrete_output,
+        concrete_valid
     );
-
+    // Pipeline Stage.
     vector_adder #(WORD_WIDTH, STATE_SIZE) add_constants(
-        state_after_concrete, constants_saved,
-        state_after_constants
+        constants_input, constants_saved,
+        constants_output
     );
+    // Pipeline Stage to output.
 
-    assign concrete_input = (pre_round_saved == 1) ? input_saved : state_after_bricks;
-    assign state_out = (pre_round_saved == 1) ? state_after_concrete : state_after_constants;
-    assign aux_reset = (pre_round_saved == 1) ? 1 : reset; // Assumes active-high reset.
-
+    // Stabilize inputs per computantion (one per reset).
     always_ff @(posedge clk) begin
         if (reset) begin
             pre_round_saved <= pre_round;
             input_saved <= state_in;
             constants_saved <= constants;
+        end
+    end
+    
+    // input_saved is already registered, so directly assign to bars input.
+    assign bars_input  = input_saved;
+    always_ff @(posedge clk) begin
+        // Always assign round stage inputs to have correct values right out of reset.
+        concrete_input <= pre_round_saved ? input_saved : bricks_output;
+        bricks_input <= bars_output;
+        constants_input <= concrete_output;
+    
+        if (reset) begin
+            valid <= 0;
+            bars_valid <= 0;
+            bricks_valid <= 0;
+            constants_valid <= 0;
+        end else begin
+            state_out <= (pre_round_saved == 1) ? concrete_output : constants_output;
+            
+            valid <= pre_round_saved ? concrete_valid : constants_valid;
+            bars_valid <= ~pre_round_saved; // Bars is not used in pre_pround.
+            bricks_valid <= bars_valid; // Bricks (not clocked yet) does not have its own valid, delay from bars.
+            // Concrete generates its own valid.
+            constants_valid <= concrete_valid; // Constants is not clocked, does not generate its own valid, delay from concrete. Should be gated based on pre-round.
         end
     end
 

@@ -26,6 +26,10 @@ module monolith_hash_tb();
         $readmemh("input_vec_16.mem", in);
         $readmemh("monolith_hash_out.mem", correct_out);
         
+        #1 // different paths are used in design for synthesis, replace constants with correct path for sim here
+        $readmemh("m31_mds_mtx.mem", hash.round.concrete.mtx);
+        $readmemh("monolith_6round_constants.mem", hash.round_constants);
+        
         @(valid == 1);
         for (int i = 0; i < 16; i = i+1) begin
             assert(out[i] == correct_out[i]);

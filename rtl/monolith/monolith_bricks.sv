@@ -26,6 +26,11 @@ module monolith_bricks #(
             m31_multiplier mul(mul_in, mul_out);
             m31_adder add(add_in.async_rcv, add_out.async_drv);
             
+            assign mul_out.clk = clk;
+            assign mul_out.reset = reset;
+            
+            assign mul_in.clk = clk;
+            assign mul_in.reset = reset;
             assign mul_in.in1 = state_in[i-1];
             assign mul_in.in2 = state_in[i-1];
             

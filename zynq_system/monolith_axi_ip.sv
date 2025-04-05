@@ -328,7 +328,7 @@
     
     monolith_top monolith(
         .clk(S_AXI_ACLK),
-        .reset(S_AXI_ARESETN),
+        .reset(~S_AXI_ARESETN),
         .in1(monolith_in1),
         .in2(monolith_in2),
         .out(data_out_reg),

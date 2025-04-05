@@ -21,7 +21,8 @@ module monolith_hash #(
     bit [WORD_WIDTH-1:0] round_constants [0:ROUND_COUNT-1][0:STATE_SIZE-1];
 
     // INSTANTIATIONS
-    bit [ROUND_COUNTER_SIZE-1:0] round_count;
+    bit round_counter_enable;
+    bit [ROUND_COUNTER_SIZE-1:0] round_counter, pre_round;
     
     bit round_zero;
     bit round_final;
@@ -34,15 +35,16 @@ module monolith_hash #(
     monolith_round #(WORD_WIDTH, STATE_SIZE, BAR_OP_COUNT) round (
         .clk(clk), .reset(round_reset),
         .pre_round(round_zero),
-        .state_in(round_input), .constants(round_constants[round_count-1]),
+        .state_in(round_input), .constants(round_constants[pre_round]),
         .state_out(state_out), .valid(round_valid)
     );
 
     // (COMBINATORIAL) LOGIC
-    assign round_zero = (round_count == 0);
+    assign pre_round = round_zero ? 0 : (round_counter - 1);
+    assign round_zero = (round_counter == 0);
     // +1 because counter will hold next round value when processing current round
-    // implement as such to preprocess next round inputs, to save some cycles.
-    assign round_final = (round_count == ROUND_COUNT+1);
+    // implemented as such to preprocess next round inputs,to save some cycles.
+    assign round_final = (round_counter == ROUND_COUNT+1);
     
      // (SEQUENTIAL) LOGIC
     localparam RST_STATE                = 0;
@@ -51,7 +53,8 @@ module monolith_hash #(
     localparam ROUND_FINISHED_STATE     = 3;
     localparam FINISH_STATE             = 4;
     
-    bit [3:0] cs, ns;
+    // HASH Round Engine FSM
+    bit [2:0] cs, ns;
     always_ff @(posedge clk) begin
         if (reset) begin
             cs <= RST_STATE;
@@ -71,48 +74,82 @@ module monolith_hash #(
         end
         
         PREP_NEXT_ROUND_STATE: begin
-            if (round_valid)
-                if (round_final)
-                    ns <= FINISH_STATE;
-                else
-                    ns <= ROUND_FINISHED_STATE;
-            else
-                ns <= PREP_NEXT_ROUND_STATE; 
+            casex({round_valid, round_final})
+                2'b11: ns <= FINISH_STATE;
+                2'b10: ns <= ROUND_FINISHED_STATE;
+                2'b0x: ns <= PREP_NEXT_ROUND_STATE;
+            endcase
         end
         
         ROUND_FINISHED_STATE: begin
             ns <= BEGIN_ROUND_STATE;
         end
+        
+        FINISH_STATE: begin
+            ns <= FINISH_STATE;
+        end
+        
+        default: ns <= RST_STATE;
         endcase
     end
     
+    integer i; // counter for input reset.
     always_comb begin
         case(cs)
         RST_STATE: begin
             round_reset <= 1;
-            round_count <= 0;
+            round_counter_enable <= 0; // Assume FSM and counter share reset, counter will be 0 here.
             round_input <= state_in;
             valid <= 0;
         end
         
         BEGIN_ROUND_STATE: begin
             round_reset <= 0;
-            round_count <= round_count + 1;
+            round_counter_enable <= 1;
+            round_input <= round_zero ? state_in : state_out;
+            valid <= 0;
         end
         
         PREP_NEXT_ROUND_STATE: begin
-            round_count <= round_count;
+            round_counter_enable <= 0;
             round_input <= state_out;
+            round_reset <= 0;
+            valid <= 0;
         end
         
         ROUND_FINISHED_STATE: begin
+            valid <= 0;
+            round_counter_enable <= 0;
+            round_input <= state_out;
             round_reset <= 1;
         end
         
         FINISH_STATE: begin
             valid <= 1;
+            round_reset <= 1;
+            round_input <= state_out;
+            round_counter_enable <= 0;
+        end
+        
+        default: begin
+            round_reset <= 1;
+            round_counter_enable <= 0;
+            for(i=0; i<STATE_SIZE; i=i+1) begin
+                round_input[i] <= 0;
+            end
+            valid <= 0;
         end
         endcase
+    end
+    
+    // Round Counter Logic
+    always_ff @(posedge clk) begin
+        if(reset) begin
+            round_counter <= 0;
+        end else begin
+            if ( round_counter_enable )
+                round_counter <= round_counter + 1;
+        end
     end
     
     initial begin
