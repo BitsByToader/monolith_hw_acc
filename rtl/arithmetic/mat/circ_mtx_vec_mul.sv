@@ -28,15 +28,36 @@ module circ_mtx_vec_mul #(
         // Compute dot product for every line of the matrix
         for ( i = 0; i < MTX_SIZE; i = i + 1 ) begin
             bit [WORD_WIDTH-1:0] row [0:MTX_SIZE-1];
+            bit [WORD_WIDTH-1:0] result_left, result_right;
+            bit valid_left, valid_right;
             
-            vector_dot_product_mc vdp(
+            vector_dot_product_mc #(.VECTOR_SIZE(8)) vdp_left (
                 .clk(clk),
                 .reset(reset),
-                .vec1(row),
-                .vec2(vec),
-                .result(result[i]),
-                .valid(row_valids[i])
+                .vec1(row[0:MTX_SIZE/2-1]),
+                .vec2(vec[0:MTX_SIZE/2-1]),
+                .result(result_left),
+                .valid(valid_left)
             );
+            
+            vector_dot_product_mc #(.VECTOR_SIZE(8)) vdp_right (
+                .clk(clk),
+                .reset(reset),
+                .vec1(row[MTX_SIZE/2:MTX_SIZE-1]),
+                .vec2(vec[MTX_SIZE/2:MTX_SIZE-1]),
+                .result(result_right),
+                .valid(valid_right)
+            );
+            
+            adder_input_if #(WORD_WIDTH) add_in();
+            adder_output_if #(WORD_WIDTH+1) add_out();
+            m31_adder add(add_in.async_rcv, add_out.async_drv);
+            
+            assign add_in.in1 = result_left;
+            assign add_in.in2 = result_right;
+            
+            assign row_valids[i] = valid_right & valid_left;
+            assign result[i] = add_out.out;
             
             // Generate a shifted row
             genvar j;
