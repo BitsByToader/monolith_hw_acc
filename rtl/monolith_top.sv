@@ -30,7 +30,7 @@ module monolith_top(
     assign out = state_out[0];
     
     always_ff @(posedge clk) begin
-        if (reset | ~go) begin // Negative go also resets module.
+        if (reset) begin
             for (int i = 0; i < 16; i=i+1) begin
                 state_in[i] <= 0;
             end

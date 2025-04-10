@@ -308,7 +308,8 @@
     // TODO: Use another AXI IP, Xilinx's provided skeleton is garbage.
     wire [C_S_AXI_DATA_WIDTH-1:0] data_in1_reg = slv_reg0;
     wire [C_S_AXI_DATA_WIDTH-1:0] data_in2_reg = slv_reg1;
-    wire [C_S_AXI_DATA_WIDTH-1:0] data_out_reg = slv_reg2;
+    wire [30:0] data_out_reg;
+    assign slv_reg2 = {data_out_reg, IRQ_DATA_VALID};
     wire [C_S_AXI_DATA_WIDTH-1:0] cmd_status_reg = slv_reg3;
     // TODO: Assign valid output of hash to CMD/STATUS reg.
     
