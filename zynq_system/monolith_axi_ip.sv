@@ -318,13 +318,13 @@
     mod_reduction_inout_if #(.DATA_WIDTH(32)) reduce_in1();
     mod_reduction_inout_if #(.DATA_WIDTH(31)) reduce_out1(); 
     m31_mod_reduce reduce1(reduce_in1.rcv, reduce_out1.drv);
-    assign reduce_in1.data = data_in1_reg;
+    assign reduce_in1.data = data_in1_reg[30:0];
     assign monolith_in1 = reduce_out1.data;
     
     mod_reduction_inout_if #(.DATA_WIDTH(32)) reduce_in2();
     mod_reduction_inout_if #(.DATA_WIDTH(31)) reduce_out2(); 
     m31_mod_reduce reduce2(reduce_in2.rcv, reduce_out2.drv);
-    assign reduce_in2.data = data_in2_reg;
+    assign reduce_in2.data = data_in2_reg[30:0];
     assign monolith_in2 = reduce_out2.data;
     
     monolith_top monolith(

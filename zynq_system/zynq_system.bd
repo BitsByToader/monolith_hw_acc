@@ -1,13 +1,14 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x737FB2A6EB46DA9F",
+      "boundary_crc": "0x737FB2A6C4FC86A0",
       "device": "xc7z020clg400-1",
       "name": "zynq_system",
       "pfm_name": "tudor:pynqz2:ps_monolith_hw_acc:1.0",
       "rev_ctrl_bd_flag": "RevCtrlBdOff",
       "synth_flow_mode": "Hierarchical",
-      "tool_version": "2024.2"
+      "tool_version": "2024.2",
+      "validated": "true"
     },
     "design_tree": {
       "processing_system7_0": "",
@@ -43,7 +44,7 @@
             "value": "32"
           },
           "FREQ_HZ": {
-            "value": "20000000",
+            "value": "1000000",
             "value_src": "user_prop"
           },
           "HAS_BRESP": {
@@ -414,6 +415,26 @@
           },
           "ASSOCIATED_RESET": {
             "value": "ARESET"
+          },
+          "CLK_DOMAIN": {
+            "value": "zynq_system_processing_system7_0_3_FCLK_CLK0",
+            "value_src": "default_prop"
+          },
+          "FREQ_HZ": {
+            "value": "1000000",
+            "value_src": "user_prop"
+          },
+          "FREQ_TOLERANCE_HZ": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.0",
+            "value_src": "default"
           }
         }
       },
@@ -421,7 +442,17 @@
         "type": "rst",
         "direction": "O",
         "left": "0",
-        "right": "0"
+        "right": "0",
+        "parameters": {
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "POLARITY": {
+            "value": "ACTIVE_LOW",
+            "value_src": "const_prop"
+          }
+        }
       },
       "IRQ_F2P_0": {
         "type": "intr",
@@ -431,6 +462,10 @@
         "parameters": {
           "PortWidth": {
             "value": "1"
+          },
+          "SENSITIVITY": {
+            "value": "LEVEL_HIGH",
+            "value_src": "default"
           }
         }
       }
@@ -465,7 +500,7 @@
             "value": "10.000000"
           },
           "PCW_ACT_FPGA0_PERIPHERAL_FREQMHZ": {
-            "value": "43.478260"
+            "value": "1.000000"
           },
           "PCW_ACT_FPGA1_PERIPHERAL_FREQMHZ": {
             "value": "10.000000"
@@ -549,7 +584,7 @@
             "value": "0"
           },
           "PCW_CLK0_FREQ": {
-            "value": "43478260"
+            "value": "1000000"
           },
           "PCW_CLK1_FREQ": {
             "value": "10000000"
@@ -849,7 +884,7 @@
             "value": "TRUE"
           },
           "PCW_FPGA0_PERIPHERAL_FREQMHZ": {
-            "value": "44"
+            "value": "1"
           },
           "PCW_FPGA1_PERIPHERAL_FREQMHZ": {
             "value": "50"

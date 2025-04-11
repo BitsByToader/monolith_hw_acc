@@ -6,11 +6,11 @@
 ## Clock signal 125 MHz
 
 #set_property -dict { PACKAGE_PIN H16   IOSTANDARD LVCMOS33 } [get_ports { sysclk }]; #IO_L13P_T2_MRCC_35 Sch=sysclk
-create_clock -add -name sys_clk_pin -period 24.00 -waveform {0 12} [get_ports { aclk_0 }];
+create_clock -add -name sys_clk_pin -period 50.00 -waveform {0 25} [get_ports { aclk_0 }];
 
 ##Switches
 
-set_property -dict { PACKAGE_PIN M20   IOSTANDARD LVCMOS33 } [get_ports { aresetn_0 }]; #IO_L7N_T1_AD2N_35 Sch=sw[0]
+#set_property -dict { PACKAGE_PIN M20   IOSTANDARD LVCMOS33 } [get_ports { aresetn_0 }]; #IO_L7N_T1_AD2N_35 Sch=sw[0]
 #set_property -dict { PACKAGE_PIN M19   IOSTANDARD LVCMOS33 } [get_ports { sw[1] }]; #IO_L7P_T1_AD2P_35 Sch=sw[1]
 
 ##RGB LEDs
