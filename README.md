@@ -17,4 +17,5 @@ NOTE: For whatever reason, a recreated project using the given script will cause
 # Project types
 Currently there are two project types which can be created:
 1. RTL project - includes the bare Monolith hash accelerator, without any special bus interface. A few different testbenches are included to test the various modules present.
-2. System project - accelerator is packaged inside a block design along with the Zynq Processing system using a HDL wrapper. Can export a Vitis platform for flashing on a Zynq board. 
+2. System project - accelerator is packaged inside a block design along with the Zynq Processing system using a HDL wrapper. Can export a Vitis platform for flashing on a Zynq board.
+3. AXI Verification project - For integration with the processing system, the accelerator has been wrapped by a AXI interface. This project use the Xilinx AXI4Lite VIP to verify the integration into a AXI bus.
