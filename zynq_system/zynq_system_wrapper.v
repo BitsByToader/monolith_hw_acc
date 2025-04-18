@@ -100,8 +100,8 @@ module zynq_system_wrapper
   wire [3:0]M00_AXI_0_wstrb;
   wire M00_AXI_0_wvalid;
   
-  //wire [30:0] probe1_0;
-  //wire probe2_0, probe3_0;
+  wire [30:0] probe1_0;
+  wire probe2_0, probe3_0;
 
   zynq_system zynq_system_i
        (.ARESET(ARESET),
@@ -146,10 +146,10 @@ module zynq_system_wrapper
         .M00_AXI_0_wdata(M00_AXI_0_wdata),
         .M00_AXI_0_wready(M00_AXI_0_wready),
         .M00_AXI_0_wstrb(M00_AXI_0_wstrb),
-        .M00_AXI_0_wvalid(M00_AXI_0_wvalid)
-        //.probe1_0(probe1_0),
-        //.probe2_0(probe2_0),
-        //.probe3_0(probe3_0)
+        .M00_AXI_0_wvalid(M00_AXI_0_wvalid),
+        .probe0_0(probe1_0),
+        .probe1_0(probe2_0),
+        .probe2_0(probe3_0)
     );
         
     monolith_axi_ip_slave_lite_v1_0_AXI_LITE_S monolith_axi(
@@ -177,8 +177,8 @@ module zynq_system_wrapper
         .IRQ_DATA_VALID(IRQ_F2P_0)
     );
     
-    //assign probe1_0 = monolith_axi.monolith.out;
-    //assign probe2_0 = monolith_axi.monolith.hash.round_valid;
-    //assign probe3_0 = monolith_axi.monolith.hash.reset;
+    assign probe1_0 = monolith_axi.monolith.hash.mytest;
+    assign probe2_0 = monolith_axi.monolith.hash.round_valid;
+    assign probe3_0 = monolith_axi.monolith.hash.round_reset;
     
 endmodule

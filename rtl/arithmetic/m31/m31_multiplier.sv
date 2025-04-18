@@ -7,7 +7,7 @@ module m31_multiplier (
 );
     
     multiplier_output_if #(.OUTPUT_DATA_WIDTH(outputs.OUTPUT_DATA_WIDTH)) unreduced_mul();
-    inferred_multiplier mul(inputs.async_rcv, unreduced_mul.async_drv);
+    inferred_multiplier mul(inputs, unreduced_mul);
     
     mod_reduction_inout_if #(.DATA_WIDTH(unreduced_mul.OUTPUT_DATA_WIDTH)) reduce_in();
     mod_reduction_inout_if #(.DATA_WIDTH(unreduced_mul.OUTPUT_DATA_WIDTH)) reduce_out();

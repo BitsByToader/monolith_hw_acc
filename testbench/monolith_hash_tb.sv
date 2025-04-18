@@ -23,12 +23,13 @@ module monolith_hash_tb();
     always #5 clk <= ~clk;
     
     initial begin
-        //$readmemh("input_vec_16.mem", in);
-        //$readmemh("monolith_hash_out.mem", correct_out);
-        in[0] <= 54;
-        for(int i = 1; i < 16; i=i+1)begin
-            in[i] = 0;
-        end
+        $readmemh("input_vec_16.mem", in);
+        $readmemh("monolith_hash_out.mem", correct_out);
+        
+        //in[0] <= 54;
+        //for(int i = 1; i < 16; i=i+1)begin
+        //    in[i] = 0;
+        //end
         
         #1 // different paths are used in design for synthesis, replace constants with correct path for sim here
         $readmemh("m31_mds_mtx.mem", hash.round.concrete.mtx);

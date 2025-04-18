@@ -22,7 +22,7 @@ module vector_adder #(
             
             assign add_in.in1 = vec1[i];
             assign add_in.in2 = vec2[i];
-            assign result[i] = add_out.out;
+            assign result[i] = add_out.out[WORD_WIDTH-1:0];
         end
     endgenerate
     

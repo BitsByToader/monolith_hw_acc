@@ -31,12 +31,16 @@ module monolith_hash #(
     bit round_valid;
     
     bit [WORD_WIDTH-1:0] round_input [0:STATE_SIZE-1];
+    bit [WORD_WIDTH-1:0] round_output [0:STATE_SIZE-1];
+    
+    bit [WORD_WIDTH-1:0] mytest;
+    assign mytest = round_output[0];
 
     monolith_round #(WORD_WIDTH, STATE_SIZE, BAR_OP_COUNT) round (
         .clk(clk), .reset(round_reset),
         .pre_round(round_zero),
         .state_in(round_input), .constants(round_constants[pre_round]),
-        .state_out(state_out), .valid(round_valid)
+        .state_out(round_output), .valid(round_valid)
     );
 
     // (COMBINATORIAL) LOGIC
@@ -45,6 +49,11 @@ module monolith_hash #(
     // +1 because counter will hold next round value when processing current round
     // implemented as such to preprocess next round inputs,to save some cycles.
     assign round_final = (round_counter == ROUND_COUNT+1);
+    
+    genvar j;
+    for (j = 0; j < STATE_SIZE; j=j+1) begin
+        assign state_out[j] = (valid == 1) ? round_output[j] : 0;
+    end 
     
      // (SEQUENTIAL) LOGIC
     localparam RST_STATE                = 0;
@@ -66,30 +75,30 @@ module monolith_hash #(
     always_comb begin
         case(cs)
         RST_STATE: begin
-            ns <= BEGIN_ROUND_STATE;
+            ns = BEGIN_ROUND_STATE;
         end
         
         BEGIN_ROUND_STATE: begin
-            ns <= PREP_NEXT_ROUND_STATE;
+            ns = PREP_NEXT_ROUND_STATE;
         end
         
         PREP_NEXT_ROUND_STATE: begin
-            casex({round_valid, round_final})
-                2'b11: ns <= FINISH_STATE;
-                2'b10: ns <= ROUND_FINISHED_STATE;
-                2'b0x: ns <= PREP_NEXT_ROUND_STATE;
+            casez({round_valid, round_final})
+                2'b11: ns = FINISH_STATE;
+                2'b10: ns = ROUND_FINISHED_STATE;
+                2'b0?: ns = PREP_NEXT_ROUND_STATE;
             endcase
         end
         
         ROUND_FINISHED_STATE: begin
-            ns <= BEGIN_ROUND_STATE;
+            ns = BEGIN_ROUND_STATE;
         end
         
         FINISH_STATE: begin
-            ns <= FINISH_STATE;
+            ns = FINISH_STATE;
         end
         
-        default: ns <= RST_STATE;
+        default: ns = RST_STATE;
         endcase
     end
     
@@ -97,47 +106,47 @@ module monolith_hash #(
     always_comb begin
         case(cs)
         RST_STATE: begin
-            round_reset <= 1;
-            round_counter_enable <= 0; // Assume FSM and counter share reset, counter will be 0 here.
-            round_input <= state_in;
-            valid <= 0;
+            round_reset = 1;
+            round_counter_enable = 0; // Assume FSM and counter share reset, counter will be 0 here.
+            round_input = state_in;
+            valid = 0;
         end
         
         BEGIN_ROUND_STATE: begin
-            round_reset <= 0;
-            round_counter_enable <= 1;
-            round_input <= round_zero ? state_in : state_out;
-            valid <= 0;
+            round_reset = 0;
+            round_counter_enable = 1;
+            round_input = round_zero ? state_in : round_output;
+            valid = 0;
         end
         
         PREP_NEXT_ROUND_STATE: begin
-            round_counter_enable <= 0;
-            round_input <= state_out;
-            round_reset <= 0;
-            valid <= 0;
+            round_counter_enable = 0;
+            round_input = round_output;
+            round_reset = 0;
+            valid = 0;
         end
         
         ROUND_FINISHED_STATE: begin
-            valid <= 0;
-            round_counter_enable <= 0;
-            round_input <= state_out;
-            round_reset <= 1;
+            valid = 0;
+            round_counter_enable = 0;
+            round_input = round_output;
+            round_reset = 1;
         end
         
         FINISH_STATE: begin
-            valid <= 1;
-            round_reset <= 1;
-            round_input <= state_out;
-            round_counter_enable <= 0;
+            valid = 1;
+            round_reset = 1;
+            round_input = round_output;
+            round_counter_enable = 0;
         end
         
         default: begin
-            round_reset <= 1;
-            round_counter_enable <= 0;
+            round_reset = 1;
+            round_counter_enable = 0;
             for(i=0; i<STATE_SIZE; i=i+1) begin
-                round_input[i] <= 0;
+                round_input[i] = 0;
             end
-            valid <= 0;
+            valid = 0;
         end
         endcase
     end
@@ -145,10 +154,10 @@ module monolith_hash #(
     // Round Counter Logic
     always_ff @(posedge clk) begin
         if(reset) begin
-            round_counter <= 0;
+            round_counter = 0;
         end else begin
             if ( round_counter_enable )
-                round_counter <= round_counter + 1;
+                round_counter = round_counter + 1;
         end
     end
     

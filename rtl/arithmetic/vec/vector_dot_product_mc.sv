@@ -19,9 +19,10 @@ module vector_dot_product_mc #(
     localparam int DSP_PIPELINE_STAGES = 2;
     localparam int NEEDED_CYCLES = VECTOR_SIZE+DSP_PIPELINE_STAGES-1;
     localparam int COUNTER_WIDTH = $clog2(NEEDED_CYCLES);
+    localparam int VECTOR_SEL = $clog2(VECTOR_SIZE);
     
     bit [2*WORD_WIDTH:0] full_result;
-    bit [2*WORD_WIDTH:0] mul_res;
+    bit [2*WORD_WIDTH-1:0] mul_res;
     bit [WORD_WIDTH-1:0] reduced_result, acum_result;
     bit [COUNTER_WIDTH-1:0] element_counter;
 
@@ -47,7 +48,7 @@ module vector_dot_product_mc #(
     assign mul_res = mul_out.out;
 
     // MACC
-    assign full_result = acum_result + mul_res;
+    assign full_result = {WORD_WIDTH'('h0), acum_result} + mul_res;
 
     always_ff @(posedge clk) begin
         if (reset) begin

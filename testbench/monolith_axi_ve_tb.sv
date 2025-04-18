@@ -24,6 +24,7 @@ module tb(
        (.aclk_0(clock),
         .aresetn_0(reset_n));
 
+  assign irq = design_i.monolith_axi.monolith.valid;
   
   always #5ns clock <= ~clock;
 
@@ -43,16 +44,17 @@ module tb(
     reset_n = 1'b1;
     
     #50ns
+    $display("%t Begin writes for load&start!", $time);
     master_agent.AXI4LITE_WRITE_BURST(hashin1, prot, 54, resp);
-    
-    #50ns
     master_agent.AXI4LITE_WRITE_BURST(hashctrl, prot, 1, resp);
-    $display("%t Go hash", $time);
-
-    #2000ns
+    
+    $display("%t Wait for valid...", $time);
+    @(irq);
+    
     master_agent.AXI4LITE_READ_BURST(hashout, prot, read_data, resp);
     $display("%t Read after hash: %0h. Valid: %0h", $time, read_data>>1, read_data&1);
     
+    /*
     #50ns
     master_agent.AXI4LITE_WRITE_BURST(hashctrl, prot, 0, resp);
     $display("%t Stop hash go", $time);
@@ -67,6 +69,7 @@ module tb(
     #2000ns
     master_agent.AXI4LITE_READ_BURST(hashout, prot, read_data, resp);
     $display("%t Read after after reenable: %0h. Valid: %0h", $time, read_data>>1, read_data&1);
+    */
     
     $finish;
 

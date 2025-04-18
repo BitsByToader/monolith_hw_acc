@@ -57,7 +57,7 @@ module circ_mtx_vec_mul #(
             assign add_in.in2 = result_right;
             
             assign row_valids[i] = valid_right & valid_left;
-            assign result[i] = add_out.out;
+            assign result[i] = add_out.out[WORD_WIDTH-1:0];
             
             // Generate a shifted row
             genvar j;

@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x737FB2A6C4FC86A0",
+      "boundary_crc": "0x3C9AB3FC8220C62",
       "device": "xc7z020clg400-1",
       "name": "zynq_system",
       "pfm_name": "tudor:pynqz2:ps_monolith_hw_acc:1.0",
@@ -13,7 +13,8 @@
     "design_tree": {
       "processing_system7_0": "",
       "axi_smc": "",
-      "rst_ps7_0_45M": ""
+      "rst_ps7_0_45M": "",
+      "system_ila_0": ""
     },
     "interface_ports": {
       "M00_AXI_0": {
@@ -468,6 +469,21 @@
             "value_src": "default"
           }
         }
+      },
+      "probe0_0": {
+        "direction": "I",
+        "left": "30",
+        "right": "0"
+      },
+      "probe1_0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
+      },
+      "probe2_0": {
+        "direction": "I",
+        "left": "0",
+        "right": "0"
       }
     },
     "components": {
@@ -2261,6 +2277,42 @@
         "xci_name": "zynq_system_rst_ps7_0_45M_2",
         "xci_path": "ip/zynq_system_rst_ps7_0_45M_2/zynq_system_rst_ps7_0_45M_2.xci",
         "inst_hier_path": "rst_ps7_0_45M"
+      },
+      "system_ila_0": {
+        "vlnv": "xilinx.com:ip:system_ila:1.1",
+        "ip_revision": "19",
+        "xci_name": "zynq_system_system_ila_0_0",
+        "xci_path": "ip/zynq_system_system_ila_0_0/zynq_system_system_ila_0_0.xci",
+        "inst_hier_path": "system_ila_0",
+        "parameters": {
+          "C_ADV_TRIGGER": {
+            "value": "true"
+          },
+          "C_DATA_DEPTH": {
+            "value": "16384"
+          },
+          "C_EN_STRG_QUAL": {
+            "value": "1"
+          },
+          "C_MON_TYPE": {
+            "value": "NATIVE"
+          },
+          "C_NUM_OF_PROBES": {
+            "value": "3"
+          },
+          "C_PROBE0_WIDTH": {
+            "value": "31"
+          },
+          "C_PROBE_WIDTH_PROPAGATION": {
+            "value": "MANUAL"
+          },
+          "C_TRIGIN_EN": {
+            "value": "false"
+          },
+          "C_TRIGOUT_EN": {
+            "value": "false"
+          }
+        }
       }
     },
     "interface_nets": {
@@ -2296,13 +2348,32 @@
           "processing_system7_0/IRQ_F2P"
         ]
       },
+      "probe0_0_1": {
+        "ports": [
+          "probe0_0",
+          "system_ila_0/probe0"
+        ]
+      },
+      "probe1_0_1": {
+        "ports": [
+          "probe1_0",
+          "system_ila_0/probe1"
+        ]
+      },
+      "probe2_0_1": {
+        "ports": [
+          "probe2_0",
+          "system_ila_0/probe2"
+        ]
+      },
       "processing_system7_0_FCLK_CLK0": {
         "ports": [
           "processing_system7_0/FCLK_CLK0",
           "processing_system7_0/M_AXI_GP0_ACLK",
           "axi_smc/aclk",
           "rst_ps7_0_45M/slowest_sync_clk",
-          "FCLK"
+          "FCLK",
+          "system_ila_0/clk"
         ]
       },
       "processing_system7_0_FCLK_RESET0_N": {

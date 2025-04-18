@@ -1,17 +1,26 @@
 `ifndef M31_MOD_REDUCER_SV
 `define M31_MOD_REDUCER_SV
 
+// Assume input/output width is larger than 31, otherwise reduction is pointless.
+// Assume input is equal or larger than the output.
 module m31_partial_reduce(
     mod_reduction_inout_if.rcv in,
     mod_reduction_inout_if.drv out
 );
 
+    localparam REMAINING_WIDTH = out.DATA_WIDTH - 31;
+
     bit [30:0] limb_lhs;
     bit [out.DATA_WIDTH-1:0] limb_rhs;
     
     assign limb_lhs = in.data[30:0]; // gets least significat 31bits of the word
-    assign limb_rhs = in.data >> 31; // rest of the word
-    assign out.data = limb_rhs + limb_lhs; // partially reduced output as wide as word.
+    assign limb_rhs = out.DATA_WIDTH'(in.data >> 31); // rest of the word
+    
+    if (REMAINING_WIDTH == 0) begin
+        assign out.data = limb_rhs + limb_lhs; // partially reduced output as wide as word.
+    end else begin
+        assign out.data = limb_rhs + {REMAINING_WIDTH'('h0), limb_lhs}; // partially reduced output as wide as word.
+    end
 
 endmodule
 

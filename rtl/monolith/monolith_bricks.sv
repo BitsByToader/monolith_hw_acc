@@ -35,9 +35,9 @@ module monolith_bricks #(
             assign mul_in.in2 = state_in[i-1];
             
             assign add_in.in1 = state_in[i];
-            assign add_in.in2 = mul_out.out;
+            assign add_in.in2 = mul_out.out[WORD_WIDTH-1:0];
             
-            assign state_out[i] = add_out.out;
+            assign state_out[i] = add_out.out[WORD_WIDTH-1:0];
         end
     endgenerate
 
