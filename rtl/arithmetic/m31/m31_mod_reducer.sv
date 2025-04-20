@@ -10,8 +10,8 @@ module m31_partial_reduce(
 
     localparam REMAINING_WIDTH = out.DATA_WIDTH - 31;
 
-    bit [30:0] limb_lhs;
-    bit [out.DATA_WIDTH-1:0] limb_rhs;
+    logic [30:0] limb_lhs;
+    logic [out.DATA_WIDTH-1:0] limb_rhs;
     
     assign limb_lhs = in.data[30:0]; // gets least significat 31bits of the word
     assign limb_rhs = out.DATA_WIDTH'(in.data >> 31); // rest of the word

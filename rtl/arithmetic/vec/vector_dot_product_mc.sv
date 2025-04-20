@@ -9,22 +9,25 @@ module vector_dot_product_mc #(
     input logic clk,
     input logic reset,
     
-    input bit [WORD_WIDTH-1:0] vec1 [0:VECTOR_SIZE-1],
-    input bit [WORD_WIDTH-1:0] vec2 [0:VECTOR_SIZE-1],
+    input logic [WORD_WIDTH-1:0] vec1 [0:VECTOR_SIZE-1],
+    input logic [WORD_WIDTH-1:0] vec2 [0:VECTOR_SIZE-1],
     
-    output bit [WORD_WIDTH-1:0] result,
-    output bit valid
+    output logic [WORD_WIDTH-1:0] result,
+    output logic valid
 );
     // TODO: Generate non-pipelined multiplier for values smaller than 2.
     localparam int DSP_PIPELINE_STAGES = 2;
     localparam int NEEDED_CYCLES = VECTOR_SIZE+DSP_PIPELINE_STAGES-1;
-    localparam int COUNTER_WIDTH = $clog2(NEEDED_CYCLES);
+    localparam int STAGE_COUNTER_WIDTH = $clog2(NEEDED_CYCLES);
     localparam int VECTOR_SEL = $clog2(VECTOR_SIZE);
     
-    bit [2*WORD_WIDTH:0] full_result;
-    bit [2*WORD_WIDTH-1:0] mul_res;
-    bit [WORD_WIDTH-1:0] reduced_result, acum_result;
-    bit [COUNTER_WIDTH-1:0] element_counter;
+    logic [2*WORD_WIDTH:0] full_result;
+    logic [2*WORD_WIDTH-1:0] mul_res;
+    logic [WORD_WIDTH-1:0] reduced_result, reduced_result_d, acum_result;
+    
+    logic [STAGE_COUNTER_WIDTH-1:0] stage_counter;
+    logic [VECTOR_SEL-1:0] element_counter;
+    assign element_counter = (stage_counter >= VECTOR_SIZE) ? (VECTOR_SIZE-1) : stage_counter;
 
     mod_reduction_inout_if #(.DATA_WIDTH(2*WORD_WIDTH+1)) reduce_in();
     mod_reduction_inout_if #(.DATA_WIDTH(WORD_WIDTH)) reduce_out();
@@ -53,23 +56,26 @@ module vector_dot_product_mc #(
     always_ff @(posedge clk) begin
         if (reset) begin
             acum_result <= 0;
+            reduced_result_d <= 0;
         end else begin
-            acum_result <= reduced_result;
+            if (!valid)
+                acum_result <= reduced_result;
+                reduced_result_d <= reduced_result;
         end
     end
 
     always @(posedge clk) begin
         if (reset) begin
-            element_counter <= 0;
+            stage_counter <= 0;
         end else begin
-            if ((element_counter) != NEEDED_CYCLES) begin
-                element_counter <= element_counter + 1;
+            if ((stage_counter) != NEEDED_CYCLES) begin
+                stage_counter <= stage_counter + 1;
             end
         end
     end
 
     assign result = reduced_result;
-    assign valid = (element_counter == NEEDED_CYCLES);
+    assign valid = ((stage_counter) == NEEDED_CYCLES);
 
 endmodule
 

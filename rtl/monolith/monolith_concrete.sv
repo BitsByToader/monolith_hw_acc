@@ -8,9 +8,9 @@ module monolith_concrete #(
     input logic clk,
     input logic reset,
     
-    input bit [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
-    output bit [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
-    output bit valid
+    input logic [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
+    output logic [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
+    output logic valid
 );
 
     reg [WORD_WIDTH-1:0] mtx [0:STATE_SIZE-1];

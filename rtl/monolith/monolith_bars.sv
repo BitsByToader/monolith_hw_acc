@@ -9,11 +9,11 @@ module monolith_bars #(
     input logic clk,
     input logic reset,
     
-    input bit [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
-    output bit [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1]
+    input logic [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
+    output logic [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1]
 );
 
-    bit [WORD_WIDTH-1:0] full_out [0:STATE_SIZE-1];
+    logic [WORD_WIDTH-1:0] full_out [0:STATE_SIZE-1];
 
     genvar i;
     generate
@@ -30,7 +30,7 @@ module monolith_bars #(
                 assign full_out[i] = state_in[i];
             end
 
-            // TODO: Decide if reduction is necessary. Only last bit needs to be carried over?
+            // TODO: Decide if reduction is necessary. Only last logic needs to be carried over?
             // TODO: Also reduce propagated lines? Assume input to round is unreduced?
             mod_reduction_inout_if #(.DATA_WIDTH(WORD_WIDTH)) reduce_in();
             mod_reduction_inout_if #(.DATA_WIDTH(WORD_WIDTH)) reduce_out(); 

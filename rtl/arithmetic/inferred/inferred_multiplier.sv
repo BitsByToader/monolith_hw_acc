@@ -16,7 +16,7 @@ module inferred_multiplier_pl #(
     multiplier_input_if inputs,
     multiplier_output_if outputs
 );
-    bit [outputs.OUTPUT_DATA_WIDTH-1:0] stages [0:PIPELINE_STAGES-1];
+    logic [outputs.OUTPUT_DATA_WIDTH-1:0] stages [0:PIPELINE_STAGES-1];
 
     integer i,j;
     always_ff @(posedge outputs.clk) begin

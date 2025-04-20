@@ -16,7 +16,7 @@ module monolith_hash_tb();
     );
     
     initial begin
-        clk <= 0; reset <= 1;
+        clk <= 1; reset <= 1;
         #10 reset <= 0;
     end
     

@@ -10,36 +10,36 @@ module monolith_hash #(
     input logic clk,
     input logic reset,
     
-    input bit [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
-    output bit [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
-    output bit valid
+    input logic [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
+    output logic [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
+    output logic valid
 );
     
     // (LOCAL) PARAMETERS
     localparam int ROUND_COUNTER_SIZE = $clog2(ROUND_COUNT) + 1;
 
-    bit [WORD_WIDTH-1:0] round_constants [0:ROUND_COUNT-1][0:STATE_SIZE-1];
+    logic [WORD_WIDTH-1:0] round_constants [0:ROUND_COUNT-1][0:STATE_SIZE-1];
 
     // INSTANTIATIONS
-    bit round_counter_enable;
-    bit [ROUND_COUNTER_SIZE-1:0] round_counter, pre_round;
+    logic round_counter_enable;
+    logic [ROUND_COUNTER_SIZE-1:0] round_counter, pre_round;
     
-    bit round_zero;
-    bit round_final;
+    logic round_zero;
+    logic round_final;
    
-    bit round_reset; 
-    bit round_valid;
+    logic round_reset; 
+    logic round_valid;
     
-    bit [WORD_WIDTH-1:0] round_input [0:STATE_SIZE-1];
-    bit [WORD_WIDTH-1:0] round_output [0:STATE_SIZE-1];
+    logic [WORD_WIDTH-1:0] round_input [0:STATE_SIZE-1];
+    logic [WORD_WIDTH-1:0] round_output [0:STATE_SIZE-1];
     
-    bit [WORD_WIDTH-1:0] mytest;
+    logic [WORD_WIDTH-1:0] mytest;
     assign mytest = round_output[0];
 
     monolith_round #(WORD_WIDTH, STATE_SIZE, BAR_OP_COUNT) round (
         .clk(clk), .reset(round_reset),
         .pre_round(round_zero),
-        .state_in(round_input), .constants(round_constants[pre_round]),
+        .state_in(round_input), .constants(round_constants[pre_round >= ROUND_COUNT ? (ROUND_COUNT-1) : pre_round]),
         .state_out(round_output), .valid(round_valid)
     );
 
@@ -63,7 +63,7 @@ module monolith_hash #(
     localparam FINISH_STATE             = 4;
     
     // HASH Round Engine FSM
-    bit [2:0] cs, ns;
+    logic [2:0] cs, ns;
     always_ff @(posedge clk) begin
         if (reset) begin
             cs <= RST_STATE;
@@ -154,10 +154,10 @@ module monolith_hash #(
     // Round Counter Logic
     always_ff @(posedge clk) begin
         if(reset) begin
-            round_counter = 0;
+            round_counter <= 0;
         end else begin
             if ( round_counter_enable )
-                round_counter = round_counter + 1;
+                round_counter <= round_counter + 1;
         end
     end
     

@@ -9,38 +9,41 @@ module monolith_round #(
     input logic clk,
     input logic reset,
    
-    input bit pre_round,
-    input bit [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
-    input bit [WORD_WIDTH-1:0] constants [0:STATE_SIZE-1],
+    input logic pre_round,
+    input logic [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
+    input logic [WORD_WIDTH-1:0] constants [0:STATE_SIZE-1],
     
-    output bit [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
-    output bit valid
+    output logic [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
+    output logic valid
 );
 
-    bit pre_round_saved;
-    bit [WORD_WIDTH-1:0] input_saved [0:STATE_SIZE-1];
-    bit [WORD_WIDTH-1:0] constants_saved [0:STATE_SIZE-1];
+    // Delay reset for concrete in pre round to catch stable inputs.
+    logic reset_d;
+
+    logic pre_round_saved;
+    logic [WORD_WIDTH-1:0] input_saved [0:STATE_SIZE-1];
+    logic [WORD_WIDTH-1:0] constants_saved [0:STATE_SIZE-1];
     
     // Auxiliary reset used for bars and bricks.
     // Power-saving attempt in the pre round when they are not used.
     logic aux_reset;
     assign aux_reset = pre_round_saved ? 1 : reset; // Assumes active-high reset, will hold in reset in pre round.
 
-    bit [WORD_WIDTH-1:0] bars_input [0:STATE_SIZE-1];
-    bit [WORD_WIDTH-1:0] bars_output [0:STATE_SIZE-1];
-    bit bars_valid;
+    logic [WORD_WIDTH-1:0] bars_input [0:STATE_SIZE-1];
+    logic [WORD_WIDTH-1:0] bars_output [0:STATE_SIZE-1];
+    logic bars_valid;
 
-    bit [WORD_WIDTH-1:0] bricks_input [0:STATE_SIZE-1];
-    bit [WORD_WIDTH-1:0] bricks_output [0:STATE_SIZE-1];
-    bit bricks_valid;
+    logic [WORD_WIDTH-1:0] bricks_input [0:STATE_SIZE-1];
+    logic [WORD_WIDTH-1:0] bricks_output [0:STATE_SIZE-1];
+    logic bricks_valid;
 
-    bit [WORD_WIDTH-1:0] concrete_input [0:STATE_SIZE-1];
-    bit [WORD_WIDTH-1:0] concrete_output [0:STATE_SIZE-1];
-    bit concrete_valid;
+    logic [WORD_WIDTH-1:0] concrete_input [0:STATE_SIZE-1];
+    logic [WORD_WIDTH-1:0] concrete_output [0:STATE_SIZE-1];
+    logic concrete_valid;
 
-    bit [WORD_WIDTH-1:0] constants_input [0:STATE_SIZE-1];
-    bit [WORD_WIDTH-1:0] constants_output [0:STATE_SIZE-1];
-    bit constants_valid;
+    logic [WORD_WIDTH-1:0] constants_input [0:STATE_SIZE-1];
+    logic [WORD_WIDTH-1:0] constants_output [0:STATE_SIZE-1];
+    logic constants_valid;
 
     // Input saved here at reset.
     monolith_bars #(WORD_WIDTH, STATE_SIZE, BAR_OP_COUNT) bars(
@@ -54,7 +57,7 @@ module monolith_round #(
     );
     // Pipeline Stage.
     monolith_concrete #(WORD_WIDTH, STATE_SIZE) concrete(
-        clk, (reset | (pre_round_saved ? reset : ~bricks_valid)),
+        clk, (reset | (pre_round_saved ? reset_d : ~bricks_valid)),
         concrete_input, concrete_output,
         concrete_valid
     );
@@ -75,19 +78,29 @@ module monolith_round #(
     end
     
     // input_saved is already registered, so directly assign to bars input.
+    integer i;
     assign bars_input  = input_saved;
     always_ff @(posedge clk) begin
         // Always assign round stage inputs to have correct values right out of reset.
         concrete_input <= pre_round_saved ? input_saved : bricks_output;
-        bricks_input <= bars_output;
-        constants_input <= concrete_output;
+    
+        reset_d <= reset;
     
         if (reset) begin
+            // ???
+            for(i=0;i<STATE_SIZE;i=i+1)begin
+                bricks_input[i] <= 0;
+                constants_input[i] <= 0;
+            end
+        
             valid <= 0;
             bars_valid <= 0;
             bricks_valid <= 0;
             constants_valid <= 0;
         end else begin
+            bricks_input <= bars_output;
+            constants_input <= concrete_output;   
+            
             state_out <= (pre_round_saved == 1) ? concrete_output : constants_output;
             
             valid <= pre_round_saved ? concrete_valid : constants_valid;

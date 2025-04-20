@@ -5,8 +5,8 @@ module static_rotate_left #(
     WIDTH = 8,
     ROTATE_CNT = 1
 )(
-    input bit [WIDTH-1:0] in,
-    output bit [WIDTH-1:0] out
+    input logic [WIDTH-1:0] in,
+    output logic [WIDTH-1:0] out
 );
 
     assign out = { in[WIDTH-ROTATE_CNT-1:0], in[WIDTH-1:WIDTH-ROTATE_CNT] };
@@ -16,19 +16,19 @@ endmodule
 module monolith_sbox #(
     BIT_WIDTH = 8
 )(
-    input bit [BIT_WIDTH-1:0] in,
-    output bit [BIT_WIDTH-1:0] out
+    input logic [BIT_WIDTH-1:0] in,
+    output logic [BIT_WIDTH-1:0] out
 );
 
     if ( BIT_WIDTH != 8 && BIT_WIDTH != 7 )
         $error("M31 S-Box data can only be 7 or 8 bits wide!");
 
-    bit [BIT_WIDTH-1:0] sh_and;
-    bit [BIT_WIDTH-1:0] sh_and_xor;
+    logic [BIT_WIDTH-1:0] sh_and;
+    logic [BIT_WIDTH-1:0] sh_and_xor;
 
     generate
         if ( BIT_WIDTH == 8 ) begin
-            bit [BIT_WIDTH-1:0] y1, y2, y3;
+            logic [BIT_WIDTH-1:0] y1, y2, y3;
             
             static_rotate_left #(BIT_WIDTH, 1) rot1(~in, y1);
             static_rotate_left #(BIT_WIDTH, 2) rot2(in, y2);
@@ -36,7 +36,7 @@ module monolith_sbox #(
             
             assign sh_and = y1 & y2 & y3;
         end else if ( BIT_WIDTH == 7 ) begin
-            bit [BIT_WIDTH-1:0] y1, y2;
+            logic [BIT_WIDTH-1:0] y1, y2;
             
             static_rotate_left #(BIT_WIDTH, 1) rot1(~in, y1);
             static_rotate_left #(BIT_WIDTH, 2) rot2(in, y2);

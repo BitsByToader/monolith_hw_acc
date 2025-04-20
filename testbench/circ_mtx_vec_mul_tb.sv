@@ -1,4 +1,4 @@
-`include "circ_mtx_vec_mul.sv"
+`include "../rtl/includes.svh"
 
 module circ_mtx_vec_mul_tb();
     reg [30:0] vec [0:15];
@@ -26,7 +26,7 @@ module circ_mtx_vec_mul_tb();
     
     initial begin
         #10
-        $readmemh("m32_mds_mtx.mem", mtx);
+        $readmemh("m31_mds_mtx.mem", mtx);
         $readmemh("input_vec_16.mem", vec);
         $readmemh("mds_mul_vec_out_16.mem", correct_out);
         

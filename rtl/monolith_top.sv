@@ -7,17 +7,17 @@ module monolith_top(
     input logic clk, // Clocked on positive edge
     input logic reset, // Active high
     
-    input bit [30:0] in1, // Input to hash
-    input bit [30:0] in2, // Second input for compression, ignored in hashing mode
-    input bit hash_or_compress, // 0 ~~ HASH, 1 ~~ COMPRESS
-    input bit go, // Active high. Keep asserted for whole computation, hard reset of engine otherwise.
+    input logic [30:0] in1, // Input to hash
+    input logic [30:0] in2, // Second input for compression, ignored in hashing mode
+    input logic hash_or_compress, // 0 ~~ HASH, 1 ~~ COMPRESS
+    input logic go, // Active high. Keep asserted for whole computation, hard reset of engine otherwise.
     
-    output bit [30:0] out, // Result of hash
-    output bit valid // Out has valid data when asserted. Remains asserted as out is stable until go cycle or reset.
+    output logic [30:0] out, // Result of hash
+    output logic valid // Out has valid data when asserted. Remains asserted as out is stable until go cycle or reset.
 );
 
-    bit [30:0] state_in [0:15];
-    bit [30:0] state_out [0:15];
+    logic [30:0] state_in [0:15];
+    logic [30:0] state_out [0:15];
 
     monolith_hash hash(
         .clk(clk),

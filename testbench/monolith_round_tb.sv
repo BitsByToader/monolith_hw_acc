@@ -1,4 +1,4 @@
-`include "monolith_round.sv"
+`include "../rtl/includes.svh"
 
 module monolith_round_tb();
 
@@ -6,6 +6,7 @@ module monolith_round_tb();
     reg [30:0] in [0:15];
     reg [30:0] out [0:15];
     reg [30:0] correct_out [0:15];
+    reg [30:0] constants [0:15];
     
     monolith_round round(
         .clk(clk),
@@ -13,7 +14,8 @@ module monolith_round_tb();
         .state_in(in),
         .state_out(out),
         .valid(valid),
-        .pre_round(0)
+        .pre_round(0),
+        .constants(constants)
     );
     
     initial begin
@@ -24,9 +26,12 @@ module monolith_round_tb();
     always #5 clk <= ~clk;
     
     initial begin
-        #10
         $readmemh("input_vec_16.mem", in);
         $readmemh("monolith_round_out.mem", correct_out);
+        
+        #1
+        $readmemh("m31_mds_mtx.mem", round.concrete.mtx);
+        $readmemh("monolith_6round_constants.mem", constants);
         
         @(valid == 1);
         for (int i = 0; i < 16; i = i+1) begin

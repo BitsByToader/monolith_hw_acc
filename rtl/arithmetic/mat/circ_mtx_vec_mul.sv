@@ -13,23 +13,23 @@ module circ_mtx_vec_mul #(
     input logic clk,
     input logic reset,
     
-    input bit [WORD_WIDTH-1:0] mtx_row [0:MTX_SIZE-1],
-    input bit [WORD_WIDTH-1:0] vec [0:MTX_SIZE-1],
+    input logic [WORD_WIDTH-1:0] mtx_row [0:MTX_SIZE-1],
+    input logic [WORD_WIDTH-1:0] vec [0:MTX_SIZE-1],
     
-    output bit [WORD_WIDTH-1:0] result [0:MTX_SIZE-1],
-    output bit valid
+    output logic [WORD_WIDTH-1:0] result [0:MTX_SIZE-1],
+    output logic valid
 );
 
-    bit [MTX_SIZE-1:0] row_valids;
+    logic [MTX_SIZE-1:0] row_valids;
     assign valid = &row_valids;
 
     genvar i;
     generate
         // Compute dot product for every line of the matrix
         for ( i = 0; i < MTX_SIZE; i = i + 1 ) begin
-            bit [WORD_WIDTH-1:0] row [0:MTX_SIZE-1];
-            bit [WORD_WIDTH-1:0] result_left, result_right;
-            bit valid_left, valid_right;
+            logic [WORD_WIDTH-1:0] row [0:MTX_SIZE-1];
+            logic [WORD_WIDTH-1:0] result_left, result_right;
+            logic valid_left, valid_right;
             
             vector_dot_product_mc #(.VECTOR_SIZE(8)) vdp_left (
                 .clk(clk),

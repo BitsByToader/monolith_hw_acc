@@ -7,12 +7,12 @@ interface multiplier_input_if #(
     int INPUT_DATA_WIDTH = 32
 ) ();
     // For pipelined designs
-    bit clk, reset;
-    bit inputs_valid;
+    logic clk, reset;
+    logic inputs_valid;
     
     // Inputs
-    bit [INPUT_DATA_WIDTH-1:0] in1;
-    bit [INPUT_DATA_WIDTH-1:0] in2;
+    logic [INPUT_DATA_WIDTH-1:0] in1;
+    logic [INPUT_DATA_WIDTH-1:0] in2;
     
     // Combinatorial multiplier ports
     modport async_drv(
@@ -44,11 +44,11 @@ interface multiplier_output_if #(
     int OUTPUT_DATA_WIDTH = 64
 ) ();
     // For multi-cycle/pipelined designs
-    bit clk, reset;
-    bit output_valid;
+    logic clk, reset;
+    logic output_valid;
 
     // Outputs
-    bit [OUTPUT_DATA_WIDTH-1:0] out;
+    logic [OUTPUT_DATA_WIDTH-1:0] out;
     
     // Combinatorial multiplier ports
     modport async_drv(
