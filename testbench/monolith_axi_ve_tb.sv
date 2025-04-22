@@ -12,8 +12,8 @@ module tb(
   
   axi_vip_bd_axi_vip_0_0_mst_t              master_agent;
    
-  xil_axi_ulong hashctrl    = 32'h4000_000C;
   xil_axi_ulong hashin1     = 32'h4000_0000;
+  xil_axi_ulong hashin2     = 32'h4000_0004;
   xil_axi_ulong hashout     = 32'h4000_0008;
   xil_axi_prot_t prot = 0;
   xil_axi_resp_t resp;
@@ -45,8 +45,7 @@ module tb(
     
     #50ns
     $display("%t Begin writes for load&start!", $time);
-    master_agent.AXI4LITE_WRITE_BURST(hashin1, prot, 54, resp);
-    master_agent.AXI4LITE_WRITE_BURST(hashctrl, prot, 1, resp);
+    master_agent.AXI4LITE_WRITE_BURST(hashin1, prot, (54 << 1)|1, resp);
     
     $display("%t Wait for valid...", $time);
     @(irq);
@@ -54,22 +53,15 @@ module tb(
     master_agent.AXI4LITE_READ_BURST(hashout, prot, read_data, resp);
     $display("%t Read after hash: %0h. Valid: %0h", $time, read_data>>1, read_data&1);
     
-    /*
     #50ns
-    master_agent.AXI4LITE_WRITE_BURST(hashctrl, prot, 0, resp);
-    $display("%t Stop hash go", $time);
+    $display("%t Begin writes for load&start!", $time);
+    master_agent.AXI4LITE_WRITE_BURST(hashin1, prot, (55 << 1)|1, resp);
     
-    #50ns
+    $display("%t Wait for valid...", $time);
+    @(irq);
+    
     master_agent.AXI4LITE_READ_BURST(hashout, prot, read_data, resp);
-    $display("%t Read after after disable: %0h. Valid: %0h", $time, read_data>>1, read_data&1);
-    
-    #50ns
-    master_agent.AXI4LITE_WRITE_BURST(hashctrl, prot, 1, resp);
-    
-    #2000ns
-    master_agent.AXI4LITE_READ_BURST(hashout, prot, read_data, resp);
-    $display("%t Read after after reenable: %0h. Valid: %0h", $time, read_data>>1, read_data&1);
-    */
+    $display("%t Read after hash: %0h. Valid: %0h", $time, read_data>>1, read_data&1);
     
     $finish;
 

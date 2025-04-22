@@ -1,6 +1,8 @@
 
 `timescale 1 ns / 1 ps
 
+// TODO: Use another AXI IP, Xilinx's provided skeleton is garbage.
+
 	module monolith_axi_ip_slave_lite_v1_0_AXI_LITE_S #
 	(
 		// Users to add parameters here
@@ -17,7 +19,7 @@
 		// Users to add ports here
 
 		// User ports ends
-		output IRQ_DATA_VALID,
+		output logic IRQ_DATA_VALID,
 		// Do not modify the ports beyond this line
 
 		// Global Clock Signal
@@ -207,7 +209,7 @@
 	    begin
 	      slv_reg0 <= 0;
 	      slv_reg1 <= 0;
-	      //slv_reg2 <= 0;
+//	      slv_reg2 <= 0;
 	      slv_reg3 <= 0;
 	    end 
 	  else begin
@@ -233,7 +235,7 @@
 	              if ( S_AXI_WSTRB[byte_index] == 1 ) begin
 	                // Respective byte enables are asserted as per write strobes 
 	                // Slave register 2 READ ONLY
-	                //slv_reg2[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
+//	                slv_reg2[(byte_index*8) +: 8] <= S_AXI_WDATA[(byte_index*8) +: 8];
 	              end  
 	          2'h3:
 	            for ( byte_index = 0; byte_index <= (C_S_AXI_DATA_WIDTH/8)-1; byte_index = byte_index+1 )
@@ -245,7 +247,7 @@
 	          default : begin
 	                      slv_reg0 <= slv_reg0;
 	                      slv_reg1 <= slv_reg1;
-	                      //slv_reg2 <= slv_reg2;
+//	                      slv_reg2 <= slv_reg2;
 	                      slv_reg3 <= slv_reg3;
 	                    end
 	        endcase
@@ -304,39 +306,66 @@
 	  assign S_AXI_RDATA = (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h0) ? slv_reg0 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h1) ? slv_reg1 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h2) ? slv_reg2 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h3) ? slv_reg3 : 0; 
 	// Add user logic here
     
-    // TODO: Add extra set of register to properly implement read/write permissions.
-    // TODO: Use another AXI IP, Xilinx's provided skeleton is garbage.
-    wire [C_S_AXI_DATA_WIDTH-1:0] data_in1_reg = slv_reg0;
-    wire [C_S_AXI_DATA_WIDTH-1:0] data_in2_reg = slv_reg1;
-    wire [30:0] data_out_reg;
-    assign slv_reg2 = {data_out_reg, IRQ_DATA_VALID};
-    wire [C_S_AXI_DATA_WIDTH-1:0] cmd_status_reg = slv_reg3;
-    // TODO: Assign valid output of hash to CMD/STATUS reg.
+    logic [30:0] monolith_in1, monolith_in2, monolith_out;
+    logic monolith_go, monolith_valid, monolith_mode;
     
-    wire [30:0] monolith_in1, monolith_in2;
+    logic [30:0] reduced1, reduced2;
     
-    mod_reduction_inout_if #(.DATA_WIDTH(32)) reduce_in1();
+    // Assume 32-bit AXI interface.
+    assign monolith_in1 = slv_reg0[31:1];
+//    assign monolith_go = slv_reg0[0];
+    logic [30:0] slv_reg0_d;
+    
+    // Reg API assumes that for compress mode, user first writes slv_reg1 and then slv_reg0.
+    assign monolith_in2 = slv_reg1[31:1];
+    assign monolith_mode = slv_reg1[0];
+    
+//    assign slv_reg2 = {monolith_go, monolith_valid};
+//    assign IRQ_DATA_VALID = monolith_valid;
+    
+    mod_reduction_inout_if #(.DATA_WIDTH(31)) reduce_in1();
     mod_reduction_inout_if #(.DATA_WIDTH(31)) reduce_out1(); 
     m31_mod_reduce reduce1(reduce_in1.rcv, reduce_out1.drv);
-    assign reduce_in1.data = data_in1_reg[30:0];
-    assign monolith_in1 = reduce_out1.data;
+    assign reduce_in1.data = monolith_in1;
+    assign reduced1 = reduce_out1.data;
     
-    mod_reduction_inout_if #(.DATA_WIDTH(32)) reduce_in2();
+    mod_reduction_inout_if #(.DATA_WIDTH(31)) reduce_in2();
     mod_reduction_inout_if #(.DATA_WIDTH(31)) reduce_out2(); 
     m31_mod_reduce reduce2(reduce_in2.rcv, reduce_out2.drv);
-    assign reduce_in2.data = data_in2_reg[30:0];
-    assign monolith_in2 = reduce_out2.data;
+    assign reduce_in2.data = monolith_in2;
+    assign reduced2 = reduce_out2.data;
     
     monolith_top monolith(
         .clk(S_AXI_ACLK),
-        .reset(~S_AXI_ARESETN),
-        .in1(monolith_in1),
-        .in2(monolith_in2),
-        .out(data_out_reg),
-        .go(cmd_status_reg[0]),
-        .hash_or_compress(cmd_status_reg[1]),
-        .valid(IRQ_DATA_VALID)
+        .reset(~S_AXI_ARESETN), // monolith uses active high reset
+        .in1(reduced1),
+        .in2(reduced2),
+        .out(monolith_out),
+        .go(monolith_go),
+        .hash_or_compress(monolith_mode),
+        .valid(monolith_valid)
     );
+    
+    // Save output and reset input 
+    always_ff @(posedge S_AXI_ACLK) begin
+        if (!S_AXI_ARESETN) begin // active low reset
+            slv_reg2 <= 0;
+            IRQ_DATA_VALID <= 0;
+            monolith_go <= 0;
+        end else begin
+            IRQ_DATA_VALID <= monolith_valid;
+            slv_reg0_d <= slv_reg0;
+            
+            if (monolith_valid) begin
+                slv_reg2 <= {monolith_out, monolith_valid};
+                monolith_go <= 0;
+            end
+            
+            if (slv_reg0_d != slv_reg0) begin
+                monolith_go <= slv_reg0[0];
+            end
+        end
+    end
 	// User logic ends
 
 	endmodule
