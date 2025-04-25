@@ -306,38 +306,41 @@
 	  assign S_AXI_RDATA = (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h0) ? slv_reg0 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h1) ? slv_reg1 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h2) ? slv_reg2 : (axi_araddr[ADDR_LSB+OPT_MEM_ADDR_BITS:ADDR_LSB] == 2'h3) ? slv_reg3 : 0; 
 	// Add user logic here
     
+    // Following logic will assume 32-bit AXI interface.
+    // Monolith module declarations.
     logic [30:0] monolith_in1, monolith_in2, monolith_out;
     logic monolith_go, monolith_valid, monolith_mode;
     
+    // Intermediate (reduced) inputs.
     logic [30:0] reduced1, reduced2;
     
-    // Assume 32-bit AXI interface.
-    assign monolith_in1 = slv_reg0[31:1];
-//    assign monolith_go = slv_reg0[0];
-    logic [30:0] slv_reg0_d;
+    // Delayed AXI inputs to check for changes.
+    logic [30:0] slv_reg0_d, slv_reg1_d;
     
     // Reg API assumes that for compress mode, user first writes slv_reg1 and then slv_reg0.
+    // Go is sampled with 1CC delay to allow for stable inputs, as go acts as internal hash engine reset.
+    assign monolith_in1 = slv_reg0[31:1];
     assign monolith_in2 = slv_reg1[31:1];
     assign monolith_mode = slv_reg1[0];
     
-//    assign slv_reg2 = {monolith_go, monolith_valid};
-//    assign IRQ_DATA_VALID = monolith_valid;
-    
+    // Reduce first input.
     mod_reduction_inout_if #(.DATA_WIDTH(31)) reduce_in1();
     mod_reduction_inout_if #(.DATA_WIDTH(31)) reduce_out1(); 
     m31_mod_reduce reduce1(reduce_in1.rcv, reduce_out1.drv);
     assign reduce_in1.data = monolith_in1;
     assign reduced1 = reduce_out1.data;
     
+    // Reduce second input.
     mod_reduction_inout_if #(.DATA_WIDTH(31)) reduce_in2();
     mod_reduction_inout_if #(.DATA_WIDTH(31)) reduce_out2(); 
     m31_mod_reduce reduce2(reduce_in2.rcv, reduce_out2.drv);
     assign reduce_in2.data = monolith_in2;
     assign reduced2 = reduce_out2.data;
     
+    // Hash engine
     monolith_top monolith(
         .clk(S_AXI_ACLK),
-        .reset(~S_AXI_ARESETN), // monolith uses active high reset
+        .reset(~S_AXI_ARESETN), // monolith uses active high reset, AXI active low.
         .in1(reduced1),
         .in2(reduced2),
         .out(monolith_out),
@@ -354,15 +357,20 @@
             monolith_go <= 0;
         end else begin
             IRQ_DATA_VALID <= monolith_valid;
+            
             slv_reg0_d <= slv_reg0;
+            slv_reg1_d <= slv_reg1;
             
-            if (monolith_valid) begin
-                slv_reg2 <= {monolith_out, monolith_valid};
-                monolith_go <= 0;
-            end
-            
-            if (slv_reg0_d != slv_reg0) begin
-                monolith_go <= slv_reg0[0];
+            if (slv_reg0_d != slv_reg0 || slv_reg1_d != slv_reg1) begin // Inputs changed, output definitely invalid.
+                monolith_go <= 0; // Terminate current computation.
+                slv_reg2 <= 0; // Disable IRQ, blank output.
+            end else begin // Inputs stable, continue work with current computation.
+                monolith_go <= slv_reg0[0]; // Passthrough 'active' signal.
+                
+                if (monolith_valid) begin
+                    slv_reg2 <= {monolith_out, monolith_valid};
+                    monolith_go <= 0;
+                end
             end
         end
     end

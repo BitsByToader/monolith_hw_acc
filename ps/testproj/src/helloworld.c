@@ -99,7 +99,6 @@ void hash_valid_service_routine(void *intc_inst_ptr) {
 	hash_done_flag = 1;
 }
 
-// TODO: Improve AXI interface design in order to cut down transfers. (auto-reset and auto-go) (AXI-Stream?)
 int main()
 {
     init_platform();
