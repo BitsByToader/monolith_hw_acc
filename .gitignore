@@ -8,3 +8,6 @@ zynq_system/*
 !zynq_system/*.sv
 !zynq_system/*.bd
 zynq_system/*bmstub.v
+
+# Ignore macOS specific junk files.
+**/.DS_store
