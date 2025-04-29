@@ -8,6 +8,7 @@
 #include <inttypes.h>   // For PRIx32 format specifier macro
 #include <sched.h>
 #include <time.h>
+#include <sys/time.h>
 
 #define MAP_SIZE 16
 #define HW_BASE_ADDRESS 0x43C00000
@@ -18,8 +19,6 @@ uint32_t monolith_permutation(volatile uint32_t *hw_acc_base, uint32_t value) {
     hw_acc_base[0] = (value << 1) | 1;
 
     while(1) {
-        // TODO: Flush caches in order to get proper value.
-
         volatile uint32_t read_value = hw_acc_base[2];
         volatile uint32_t output = read_value >> 1;
         volatile uint32_t valid = read_value & 1;
@@ -29,6 +28,7 @@ uint32_t monolith_permutation(volatile uint32_t *hw_acc_base, uint32_t value) {
 }
 
 uint32_t rand_inputs[TEST_SIZE] = {0};
+uint32_t outputs[TEST_SIZE] = {0};
 
 int main(int argc, char *argv[argc]) {
     int fd = -1; // Initialize fd to an invalid value
@@ -56,19 +56,21 @@ int main(int argc, char *argv[argc]) {
         rand_inputs[i] = (uint32_t) rand();
     }
 
+    struct timeval t0, t1;
+
     printf("Begin computation\n");
-    float startTime = (float) clock() / CLOCKS_PER_SEC;
-    
+    gettimeofday(&t0, NULL);
     for (uint32_t i = 0; i < TEST_SIZE; i=i+1) {
-        volatile uint32_t out = monolith_permutation(acc_base, rand_inputs[i]);
-        printf("%d\n", i);
+        outputs[i] = monolith_permutation(acc_base, rand_inputs[i]);
     }
-    
-    float endTime = (float) clock() / CLOCKS_PER_SEC;
-    float timeElapsed = endTime - startTime;
+    gettimeofday(&t1, NULL); 
     
     printf("Done!\n");
-    printf("Elapsed time: %f\n", timeElapsed);
+    printf("Elapsed time: %g s\n", t1.tv_sec - t0.tv_sec + 1E-6 * (t1.tv_usec - t0.tv_usec));
+
+//    for (int i = 0; i < TEST_SIZE; i=i+1) {
+//        printf("%d %d\n", rand_inputs[i], outputs[i]);
+//    }
 
     // Unmap memory
     if (munmap(map_base, MAP_SIZE) == -1) {

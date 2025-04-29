@@ -21,7 +21,7 @@
 
 #define HASH_VALID_IRQ_NO   56
 
-#define MAX_READ_ATTEMPT_NO 1
+#define MAX_READ_ATTEMPT_NO 100
 
 // --- Register Offsets (example) ---
 #define REG_IN1             0x00
@@ -69,47 +69,31 @@ static inline void periph_write_reg(u32 offset, u32 value)
 }
 
 // --- Interrupt Handler ---
-static volatile u32 output_at_irq = -1; // TODO: replace with spinlock.
 static atomic_t irq_handled = ATOMIC_INIT(0);
 static wait_queue_head_t wait_queue;
 
 static inline void reset_irq(void) {
-    output_at_irq = -1;
     atomic_set(&irq_handled, 0);
 }
 
-static inline irqreturn_t ack_irq(void) {
-    irqreturn_t retval = IRQ_NONE;
-    output_at_irq = periph_read_reg(REG_OUT);
+static inline u32 ack_irq(void) {
+    u32 output_at_irq = periph_read_reg(REG_OUT);
 
     if ( (output_at_irq&1) == 1 ) {
+        // Acknowledge IRQ, by resetting input (same as just setting LSB).
         periph_write_reg(REG_IN1, 0);
-        periph_write_reg(REG_IN2, 0);
-        
-        output_at_irq >>= 1;
-        retval = IRQ_HANDLED;
-    } else {
-        output_at_irq = -1;
-        retval = IRQ_NONE;
     }
-    
-    atomic_set(&irq_handled, 1); 
-    wake_up_interruptible(&wait_queue);
-    
-    return retval;
+
+    return output_at_irq;
 }
 
 static irqreturn_t irq_handler(int irq,void *dev_id) {
-    irqreturn_t irq_result;
-    irq_result = ack_irq();
+    atomic_set(&irq_handled, 1); 
+    wake_up_interruptible(&wait_queue);
 
-    if (irq_result == IRQ_HANDLED) {
-        pr_info("%s: Handled valid IRQ! Out: 0x%x\n", DRIVER_NAME, output_at_irq);
-    } else {
-        pr_info("%s: Got IRQ, but output was not valid.\n", DRIVER_NAME);
-    }
+    //pr_info("%s: Handled IRQ!\n", DRIVER_NAME);
 
-    return irq_result;
+    return IRQ_HANDLED;
 }
 
 // --- File Operations ---
@@ -133,7 +117,8 @@ static long my_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     struct monolith_ioc_hash_data hash_data;
     struct monolith_ioc_compress_data compress_data;
-    __u32 read_data = 0, read_attempt_count = 0;
+    u32 read_data = -1, read_attempt_count = 0;
+    u32 output_at_irq = -1;
 
     // Verify IOCTL command and arguments based on type and number
     if (_IOC_TYPE(cmd) != MY_PERIPHERAL_IOC_MAGIC) return -ENOTTY; // Wrong magic number
@@ -161,27 +146,31 @@ static long my_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
                 return -EFAULT;
             }
 
-            reset_irq();
-
             // Send hash input.
             pr_debug("%s: Hashing value:  0x%x\n", DRIVER_NAME, hash_data.value);
             periph_write_reg(REG_IN2, 0);
             periph_write_reg(REG_IN1, (hash_data.value<<1)|1);
 
-            pr_info("%s: IN1 value after write: 0x%x\n", DRIVER_NAME, periph_read_reg(REG_IN1)>>1);
-            pr_info("%s: OUT value after write: 0x%x\n", DRIVER_NAME, periph_read_reg(REG_OUT));
-
             // Sleep until results are valid.
-            wait_event_interruptible_timeout(wait_queue, atomic_read(&irq_handled) == 1, HZ); 
+            // 4000 nanosecond timeout, how much one computation takes, with some margin (real compt ~2400).
+            wait_event_interruptible_timeout(wait_queue, atomic_read(&irq_handled) == 1, usecs_to_jiffies(3));  
 
-            // Store result back into struct
-            hash_data.out = output_at_irq;
+            // Will return the value read at the moment of IRQ.
+            output_at_irq = ack_irq();
+            
+            if ( (output_at_irq&1) == 0 ) { // Data invalid.
+                hash_data.out = -1;
+            } else { // Data valid
+                hash_data.out = output_at_irq >> 1; // Remove flag.
+            }
 
             // Copy the updated structure (containing value) back to user space
             if (copy_to_user((struct monolith_ioc_hash_data __user *)arg, &hash_data, sizeof(hash_data))) {
                 pr_err("%s: IOCTL HASH - Failed to copy data to user\n", DRIVER_NAME);
                 return -EFAULT;
             }
+
+            reset_irq();
             break;
 
         case MONOLITH_IOC_COMPRESS_U32:
@@ -197,20 +186,18 @@ static long my_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
             periph_write_reg(REG_IN1, (compress_data.value1<<1)|1);
             
             // Wait for valid and store result back into struct
-            read_data = 0;
+            read_data = -1;
             read_attempt_count = 0;
             do {
                 read_attempt_count++;
                 read_data = periph_read_reg(REG_OUT);
-                pr_debug("%s: Attempt read: 0x%x\n", DRIVER_NAME, read_data);
+//                pr_debug("%s: Attempt read: 0x%x\n", DRIVER_NAME, read_data);
             } while ( (read_data&1) == 0 && read_attempt_count < MAX_READ_ATTEMPT_NO);
             
             if ( (read_data&1) == 0) {
-                compress_data.out = -1;
-//                pr_err("%s: Failed to get a valid output from hash engine, bailed out.\n", DRIVER_NAME);
+                compress_data.out = -1; // Invalid data
             } else {
-                compress_data.out = read_data >> 1;
-                pr_debug("%s: Compression Hash: 0x%x\n", DRIVER_NAME, hash_data.out);
+                compress_data.out = read_data >> 1; // Remove valid flag
             }
 
             // Copy the updated structure (containing value) back to user space

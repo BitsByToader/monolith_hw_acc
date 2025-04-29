@@ -6,6 +6,7 @@
 #include <errno.h>      // errno
 #include <string.h>     // strerror
 #include <time.h>
+#include <sys/time.h>
 #include <stdint.h>     // for uint32_t
 
 // Include the SAME header file used by the kernel module
@@ -14,20 +15,21 @@
 // --- Define peripheral details matching the driver ---
 #define DEVICE_PATH "/dev/monolith_hw_acc"
 
-#define TEST_SIZE 10
-#define PRINT_HASHES
+#define TEST_SIZE 1000000
+//#define PRINT_HASHES
 
 uint32_t rand_inputs[TEST_SIZE] = { 0 };
 
 int driver_fd;
 uint32_t monolith_hash(uint32_t input) {
-    struct monolith_ioc_hash_data hash_req;
+    struct monolith_ioc_compress_data hash_req;
     int ret;
 
-    hash_req.value = input;
+    hash_req.value1 = input;
+    hash_req.value2 = 0;
     hash_req.out = -1;
 
-    ret = ioctl(driver_fd, MONOLITH_IOC_HASH_U32, &hash_req);
+    ret = ioctl(driver_fd, MONOLITH_IOC_COMPRESS_U32, &hash_req);
     if (ret < 0) {
         perror("IOCTL Read failed");
         fprintf(stderr, "Error during IOCTL Read: %s\n", strerror(errno));
@@ -59,26 +61,25 @@ int main() {
     }
 
     printf("Begin computation\n");
-    float startTime = (float) clock() / CLOCKS_PER_SEC;
+    struct timeval t0, t1;
     int misses = 0;
+
+    gettimeofday(&t0, NULL);
     for (uint32_t i = 0; i < TEST_SIZE; i=i+1) {
-        //volatile uint32_t out = monolith_hash(rand_inputs[i]);
-        volatile uint32_t out = monolith_hash(0x36+i);
-        if (out == -1) misses++;
+        volatile uint32_t out = monolith_hash(rand_inputs[i]);
+//        if (out == -1) misses++;
 
         #ifdef PRINT_HASHES
-            printf("hash(0x%x)=0x%x\n", 0x36+i, out);
+            printf("hash(0x%x)=0x%x\n", rand_inputs[i], out);
         #endif
-    }
 
-    float endTime = (float) clock() / CLOCKS_PER_SEC;
-    float timeElapsed = endTime - startTime;
+//        sleep(1);
+    }
+    gettimeofday(&t1, NULL);
 
     printf("Done!\n");
-    printf("Elapsed time: %f\n", timeElapsed);
+    printf("Elapsed time: %g s\n", t1.tv_sec - t0.tv_sec + 1E-6 * (t1.tv_usec - t0.tv_usec));
     printf("Misses: %d out of %d\n", misses, TEST_SIZE);
-
-    //printf("User App: IOCTL Hash succesfull: Out=0x%08x\n", monolith_hash(0x36));
 
     printf("User App: Closing device.\n");
     close(driver_fd);
