@@ -315,7 +315,7 @@
     logic [30:0] reduced1, reduced2;
     
     // Delayed AXI inputs to check for changes.
-    logic [30:0] slv_reg0_d, slv_reg1_d;
+    logic [C_S_AXI_DATA_WIDTH-1:0] slv_reg0_d, slv_reg1_d;
     
     // Reg API assumes that for compress mode, user first writes slv_reg1 and then slv_reg0.
     // Go is sampled with 1CC delay to allow for stable inputs, as go acts as internal hash engine reset.

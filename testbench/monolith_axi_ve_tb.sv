@@ -45,7 +45,7 @@ module tb(
     
     #50ns
     $display("%t Begin writes for load&start!", $time);
-    master_agent.AXI4LITE_WRITE_BURST(hashin1, prot, (54 << 1)|1, resp);
+    master_agent.AXI4LITE_WRITE_BURST(hashin1, prot, (1965742212 << 1)|1, resp);
     
     $display("%t Wait for valid...", $time);
     @(irq);
@@ -55,7 +55,7 @@ module tb(
     
     #50ns
     $display("%t Begin writes for load&start!", $time);
-    master_agent.AXI4LITE_WRITE_BURST(hashin1, prot, (55 << 1)|1, resp);
+    master_agent.AXI4LITE_WRITE_BURST(hashin1, prot, (1965742213 << 1)|1, resp);
     
     $display("%t Wait for valid...", $time);
     @(irq);

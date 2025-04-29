@@ -112,7 +112,7 @@ int main()
     for(int i = 0; i < 1000000; i++ ) {
     	hash_done_flag = 0;
 
-    	*hash_in1 = ((54+i) << 1) | 1;
+    	*hash_in1 = ((1965742212+i) << 1) | 1;
 
 		while (hash_done_flag == 0 );
 
