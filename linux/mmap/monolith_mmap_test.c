@@ -14,9 +14,25 @@
 #define HW_BASE_ADDRESS 0x43C00000
 
 #define TEST_SIZE 1000000
+#define PRINT_COMPUTATIONS
 
 uint32_t monolith_permutation(volatile uint32_t *hw_acc_base, uint32_t value) {
     hw_acc_base[0] = (value << 1) | 1;
+
+    // Example: For a million computations, about 20-30 calls to this function will return the value from the prev call without this fine tuning code.
+    // Below two lines should force flush previous write. 
+    volatile uint32_t tmp1 = hw_acc_base[0];
+    volatile uint32_t tmp2 = hw_acc_base[2]; 
+    
+    // Sleep here as to let writes propagate through the OS to the hardware.
+    // The peripheral will set the valid flag to 0 when the value changes, earlier reads to the output will read the previous output (BAD!).
+    // AXI bus to peripheral runs at ~47MHz (21ns period).
+    // CPU runs at 650MHz (~1.53ns period).
+    // Linux sleep is at least a few microseconds due to scheduler.
+    // Tight loop sleep this since this function will take less than the 100ms sched quanta, so we shouldn't be switched out.
+    for (volatile int i = 0; i < 50; i++) {
+        asm("MOV r0, r0"); // NOP on ARMv7
+    }
 
     while(1) {
         volatile uint32_t read_value = hw_acc_base[2];
@@ -65,12 +81,18 @@ int main(int argc, char *argv[argc]) {
     }
     gettimeofday(&t1, NULL); 
     
-    printf("Done!\n");
-    printf("Elapsed time: %g s\n", t1.tv_sec - t0.tv_sec + 1E-6 * (t1.tv_usec - t0.tv_usec));
+    double elapsed = t1.tv_sec - t0.tv_sec + 1E-6 * (t1.tv_usec - t0.tv_usec);
+    double throughput = TEST_SIZE / elapsed;
 
-//    for (int i = 0; i < TEST_SIZE; i=i+1) {
-//        printf("%d %d\n", rand_inputs[i], outputs[i]);
-//    }
+    printf("Done!\n");
+    printf("Elapsed time: %g s\n", elapsed);
+    printf("Throughput: %g hash/sec\n", throughput);
+
+#ifdef PRINT_COMPUTATIONS
+    for (int i = 0; i < TEST_SIZE; i=i+1) {
+        printf("%d %u %u\n", i, rand_inputs[i], outputs[i]);
+    }
+#endif
 
     // Unmap memory
     if (munmap(map_base, MAP_SIZE) == -1) {
