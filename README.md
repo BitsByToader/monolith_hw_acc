@@ -1,3 +1,4 @@
+# About
 This repository contains the design files of a hardware accelerator for the arithmetizable hash function, [Monolith](https://eprint.iacr.org/2023/1025).
 Also provided are sample applications for interfacing with the accelerator via Linux or baremetal.
 To check out a Rust-wrapped driver for this accelerator, used in a real STARK to prove/verify arguments of knowledge, check out the [sister repo](https://github.com/BitsByToader/Plonky3/).
