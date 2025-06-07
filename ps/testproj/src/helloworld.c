@@ -102,7 +102,7 @@ void hash_valid_service_routine(void *intc_inst_ptr) {
 int main()
 {
     init_platform();
-    setup_interrupt_system();
+    //setup_interrupt_system();
 
     XTime time_start, time_end;
 
@@ -114,7 +114,7 @@ int main()
 
     	*hash_in1 = ((1965742212+i) << 1) | 1;
 
-		while (hash_done_flag == 0 );
+		while ( (*hash_out & 1) == 0 );
 
 		volatile int out = *hash_out >> 1;
 

@@ -367,6 +367,8 @@
             end else begin // Inputs stable, continue work with current computation.
                 monolith_go <= slv_reg0[0]; // Passthrough 'active' signal.
                 
+                // TODO: Change logic below. Causes design to execute computation in a loop.
+                // Should do it only once until input is changed.
                 if (monolith_valid) begin
                     slv_reg2 <= {monolith_out, monolith_valid};
                     monolith_go <= 0;

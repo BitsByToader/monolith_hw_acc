@@ -56,6 +56,7 @@ module monolith_hash #(
     end 
     
      // (SEQUENTIAL) LOGIC
+     // TODO: Change parameters to enum!
     localparam RST_STATE                = 0;
     localparam BEGIN_ROUND_STATE        = 1;
     localparam PREP_NEXT_ROUND_STATE    = 2;

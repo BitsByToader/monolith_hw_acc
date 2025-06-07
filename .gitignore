@@ -9,5 +9,12 @@ zynq_system/*
 !zynq_system/*.bd
 zynq_system/*bmstub.v
 
+# Same for AXI4-Stream system.
+streaming_zynq_system/*
+!streaming_zynq_system/*.v
+!streaming_zynq_system/*.sv
+!streaming_zynq_system/*.bd
+streaming_zynq_system/*bmstub.v
+
 # Ignore macOS specific junk files.
 **/.DS_store
