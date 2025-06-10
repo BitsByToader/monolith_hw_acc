@@ -3,7 +3,7 @@
 `include "includes.svh"
 
 module monolith_axis_ip # (
-    parameter integer C_S00_AXIS_TDATA_WIDTH	= 31, // TODO: Change back to 32 and fix mismatched width error.
+    parameter integer C_S00_AXIS_TDATA_WIDTH	= 31,
 	parameter integer C_M00_AXIS_TDATA_WIDTH	= 31,
 	
 	parameter integer PERM_SIZE = 16,

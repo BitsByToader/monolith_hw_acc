@@ -31,9 +31,10 @@ module monolith_axis_ip_slave_sif #(
 	localparam integer FIFO_CHUNK_ADDR_SIZE = $clog2(FIFO_CHUNK_SIZE);
 	
 	// FIFO Data Streaming FSM States.
-	// TODO: Change parameters to enum!
-	localparam IDLE        = 1'b0,  // Initial/idle state 
-	           WRITE_FIFO  = 1'b1; // Write FIFO with input stream data S_AXIS_TDATA 
+	typedef enum logic {
+	   IDLE = 1'b0,
+	   WRITE_FIFO = 1'b1
+	} AXI_SLAVE_STATE_e;
 	
 	// FIFO memory
 	logic [C_S_AXIS_TDATA_WIDTH-1:0] stream_data_fifo [0:NUMBER_OF_INPUT_WORDS-1];
@@ -41,7 +42,7 @@ module monolith_axis_ip_slave_sif #(
 	wire axis_tready;
 	
 	// State variable
-	logic mst_exec_state;  
+	AXI_SLAVE_STATE_e mst_exec_state;
 	
 	// FIFO full flag.
 	logic fifo_full;

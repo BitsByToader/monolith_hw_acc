@@ -15,6 +15,9 @@ module tb(
     
   axi4stream_ready_gen ready_gen;
   axi4stream_transaction wr_transaction;
+  
+  axi4stream_monitor_transaction mt_trx;
+  xil_axi4stream_data_byte mt_data[4];
 
   initial begin
     #1ns // different paths are used in design for synthesis, replace constants with correct path for sim here
@@ -30,13 +33,13 @@ module tb(
     
     #50ns
     
-    ready_gen = slv_agent.driver.create_ready("ready_gen");
-    ready_gen.set_ready_policy(XIL_AXI4STREAM_READY_GEN_OSC);
-    ready_gen.set_low_time(1);
-    ready_gen.set_high_time(2);
-    slv_agent.driver.send_tready(ready_gen);
-    
-    #50ns
+    fork begin
+        forever begin
+            slv_agent.monitor.item_collected_port.get(mt_trx);
+            mt_trx.get_data(mt_data);
+            $display("Got master if trx. Data: %0h", {mt_data[3], mt_data[2], mt_data[1], mt_data[0]});
+        end
+    end join_none
     
     wr_transaction = mst_agent.driver.create_transaction("write transaction");
     wr_transaction.set_data({8'h1, 8'h0, 8'h0, 8'h0});
@@ -54,6 +57,12 @@ module tb(
     wr_transaction.set_data({8'h4, 8'h0, 8'h0, 8'h0});
     for (int i = 0; i < 16; i=i+1)
         mst_agent.driver.send(wr_transaction);
+    
+//    ready_gen = slv_agent.driver.create_ready("ready_gen");
+//    ready_gen.set_ready_policy(XIL_AXI4STREAM_READY_GEN_OSC);
+//    ready_gen.set_low_time(1);
+//    ready_gen.set_high_time(2);
+//    slv_agent.driver.send_tready(ready_gen);
     
     #2500ns
     
