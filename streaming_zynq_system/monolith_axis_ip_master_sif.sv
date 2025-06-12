@@ -27,6 +27,7 @@ module monolith_axis_ip_master_sif #(
 );
 	
 	localparam integer NUMBER_OF_OUTPUT_WORDS = FIFO_CHUNK_SIZE * FIFO_CHUNK_COUNT;
+	localparam integer FIFO_LEVEL_SIZE = $clog2(NUMBER_OF_OUTPUT_WORDS);
 	localparam integer FIFO_RD_ADDR_SIZE = $clog2(NUMBER_OF_OUTPUT_WORDS);
 	localparam integer FIFO_WR_ADDR_SIZE = $clog2(FIFO_CHUNK_COUNT);
 	localparam integer FIFO_CHUNK_ADDR_SIZE = $clog2(FIFO_CHUNK_SIZE);
@@ -40,6 +41,7 @@ module monolith_axis_ip_master_sif #(
     logic [FIFO_RD_ADDR_SIZE-1:0] read_pointer;
     logic [FIFO_WR_ADDR_SIZE-1:0] write_pointer;
     // FIFO status
+    logic [FIFO_LEVEL_SIZE:0] fifo_level;
     logic fifo_empty;
     logic fifo_almost_empty;
 	// and fifo_full which is output port...
@@ -54,10 +56,23 @@ module monolith_axis_ip_master_sif #(
 	assign M_AXIS_TLAST    = axis_tlast;
 	assign M_AXIS_TSTRB    = {(C_M_AXIS_TDATA_WIDTH/8){1'b1}};
 
-    // FIFO Status Flags logic based on R/W pointers.
-    assign fifo_full            = ( {write_pointer, FIFO_CHUNK_ADDR_SIZE'('h0)} == (read_pointer-1) );
-    assign fifo_empty           = ( {write_pointer, FIFO_CHUNK_ADDR_SIZE'('h0)} == (read_pointer) );
-    assign fifo_almost_empty    = ( {write_pointer, FIFO_CHUNK_ADDR_SIZE'('h0)} == (read_pointer+1) );
+    // FIFO Status Flags logic is based on level.
+    always_ff @(posedge M_AXIS_ACLK) begin
+        if (!M_AXIS_ARESETN) begin
+            fifo_level <= 0;
+        end else begin
+            case({tx_en, fifo_wren})
+                2'b00: fifo_level <= fifo_level;
+                2'b01: fifo_level <= fifo_level + FIFO_CHUNK_SIZE;
+                2'b10: fifo_level <= fifo_level - 1;
+                2'b11: fifo_level <= fifo_level + FIFO_CHUNK_SIZE - 1;
+            endcase
+        end
+    end
+    
+    assign fifo_full            = ( fifo_level == NUMBER_OF_OUTPUT_WORDS );
+    assign fifo_empty           = ( fifo_level == 0 );
+    assign fifo_almost_empty    = ( fifo_level == 1 );
 
 	// Streaming output data is valid if there is at least one element in the FIFO to send.
 	assign axis_tvalid = ~fifo_empty;
@@ -67,7 +82,7 @@ module monolith_axis_ip_master_sif #(
     assign tx_en = M_AXIS_TREADY & axis_tvalid & ~fifo_empty;
 
 	// Read logic.
-	always@(posedge M_AXIS_ACLK) begin                                                                            
+	always_ff @(posedge M_AXIS_ACLK) begin                                                                            
 	   if(!M_AXIS_ARESETN) begin                                                                        
 	       read_pointer <= 0;
 	   end else begin      
@@ -91,6 +106,7 @@ module monolith_axis_ip_master_sif #(
         end
     end
     
+    // FIFO memory is written into chunks.
     genvar idx;
     generate
         for (idx = 0; idx < FIFO_CHUNK_SIZE; idx = idx+1) begin
@@ -100,7 +116,8 @@ module monolith_axis_ip_master_sif #(
             logic [NUMBER_OF_OUTPUT_WORDS-1:0] fifo_addr;
             assign fifo_addr = {write_pointer, fifo_chunk};
             
-            always @(posedge M_AXIS_ACLK) begin
+            always_ff @(posedge M_AXIS_ACLK) begin
+                // TODO: Memory should be initialized as good practice, although not necessary here.
                 if (fifo_wren) fifo_mem[fifo_addr] <= fifo_in[fifo_chunk];
             end
         end

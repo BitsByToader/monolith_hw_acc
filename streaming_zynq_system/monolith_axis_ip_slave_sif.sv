@@ -26,6 +26,7 @@ module monolith_axis_ip_slave_sif #(
 	input wire  S_AXIS_TVALID
 );
 	localparam integer NUMBER_OF_INPUT_WORDS = FIFO_CHUNK_SIZE * FIFO_CHUNK_COUNT;
+	localparam integer FIFO_LEVEL_SIZE = $clog2(NUMBER_OF_INPUT_WORDS);
 	localparam integer FIFO_WR_ADDR_SIZE = $clog2(NUMBER_OF_INPUT_WORDS);
 	localparam integer FIFO_RD_ADDR_SIZE = $clog2(FIFO_CHUNK_COUNT);
 	localparam integer FIFO_CHUNK_ADDR_SIZE = $clog2(FIFO_CHUNK_SIZE);
@@ -43,6 +44,9 @@ module monolith_axis_ip_slave_sif #(
 	
 	// State variable
 	AXI_SLAVE_STATE_e mst_exec_state;
+	
+	// FIFO level
+	logic [FIFO_LEVEL_SIZE:0] fifo_level;
 	
 	// FIFO full flag.
 	logic fifo_full;
@@ -93,8 +97,22 @@ module monolith_axis_ip_slave_sif #(
 	       endcase
     end
 
+    // FIFO Status Flags logic is based on level.
+    always_ff @(posedge S_AXIS_ACLK) begin
+        if (!S_AXIS_ARESETN) begin
+            fifo_level <= 0;
+        end else begin
+            case({fifo_rden, fifo_wren})
+                2'b00: fifo_level <= fifo_level;
+                2'b01: fifo_level <= fifo_level + 1;
+                2'b10: fifo_level <= fifo_level - FIFO_CHUNK_SIZE;
+                2'b11: fifo_level <= fifo_level - FIFO_CHUNK_SIZE + 1;
+            endcase
+        end
+    end
+
     // Write logic.
-	assign fifo_full = ( (write_pointer[FIFO_WR_ADDR_SIZE-1:FIFO_CHUNK_ADDR_SIZE]+1) == read_pointer );
+	assign fifo_full = ( fifo_level == (NUMBER_OF_INPUT_WORDS-1) );
 	assign axis_tready = ((mst_exec_state == WRITE_FIFO) && !fifo_full); // Always accept data until FIFO is full.
     assign fifo_wren = S_AXIS_TVALID && axis_tready;
     
@@ -125,7 +143,7 @@ module monolith_axis_ip_slave_sif #(
     end
 
     // Read logic.
-    assign fifo_empty = (write_pointer[FIFO_WR_ADDR_SIZE-1:FIFO_CHUNK_ADDR_SIZE] == read_pointer);
+    assign fifo_empty = (fifo_level < FIFO_CHUNK_SIZE); // TODO: From a reusability PoV, this is less ideal. Keep empty as is, outside of module compute 'true' empty based on chunk using level.
     assign fifo_rden = fifo_read_strobe & !fifo_empty;
     
     always @(posedge S_AXIS_ACLK) begin
