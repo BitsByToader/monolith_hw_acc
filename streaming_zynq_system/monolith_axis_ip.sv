@@ -147,42 +147,26 @@ module monolith_axis_ip # (
                 ns = IDLE;
             end
             
-            default: ns = IDLE;
+            default: begin
+                ns = IDLE;
+            end
         endcase
     end
     
     // FSM output logic
     always_comb begin
         case(cs)
-            IDLE: begin
-                hash_rst <= 1;
-                read_req <= 0;
-                write_req <= 0;
-            end
+            IDLE: {hash_rst, read_req, write_req} = 3'b1_0_0;
             
-            INPUT_DATA_AVAILABLE: begin
-                hash_rst <= 0;
-                read_req <= 0;
-                write_req <= 0;
-            end
+            INPUT_DATA_AVAILABLE: {hash_rst, read_req, write_req} = 3'b0_0_0;
             
-            REQ_NEXT_DATA: begin
-                hash_rst <= 0;
-                read_req <= 1;
-                write_req <= 0;
-            end
+            REQ_NEXT_DATA: {hash_rst, read_req, write_req} = 3'b0_1_0;
             
-            WAIT_COMPUTE: begin
-                hash_rst <= 0;
-                read_req <= 0;
-                write_req <= 0;
-            end
+            WAIT_COMPUTE: {hash_rst, read_req, write_req} = 3'b0_0_0;
             
-            FLUSH_COMPUTE: begin
-                hash_rst <= 1;
-                read_req <= 0;
-                write_req <= 1;
-            end
+            FLUSH_COMPUTE: {hash_rst, read_req, write_req} = 3'b1_0_1;
+            
+            default: {hash_rst, read_req, write_req} = 3'b1_0_0;
         endcase
     end
 

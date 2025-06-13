@@ -55,16 +55,17 @@ module monolith_hash #(
         assign state_out[j] = (valid == 1) ? round_output[j] : 0;
     end 
     
-     // (SEQUENTIAL) LOGIC
-     // TODO: Change parameters to enum!
-    localparam RST_STATE                = 0;
-    localparam BEGIN_ROUND_STATE        = 1;
-    localparam PREP_NEXT_ROUND_STATE    = 2;
-    localparam ROUND_FINISHED_STATE     = 3;
-    localparam FINISH_STATE             = 4;
+    // (SEQUENTIAL) LOGIC
+    typedef enum logic [2:0] {
+        RST_STATE               = 0,
+        BEGIN_ROUND_STATE       = 1,
+        PREP_NEXT_ROUND_STATE   = 2,
+        ROUND_FINISHED_STATE    = 3,
+        FINISH_STATE            = 4
+    } HASH_LOGIC_STATES_e;
     
     // HASH Round Engine FSM
-    logic [2:0] cs, ns;
+    HASH_LOGIC_STATES_e cs, ns;
     always_ff @(posedge clk) begin
         if (reset) begin
             cs <= RST_STATE;

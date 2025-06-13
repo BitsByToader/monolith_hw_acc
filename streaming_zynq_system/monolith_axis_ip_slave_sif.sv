@@ -31,71 +31,24 @@ module monolith_axis_ip_slave_sif #(
 	localparam integer FIFO_RD_ADDR_SIZE = $clog2(FIFO_CHUNK_COUNT);
 	localparam integer FIFO_CHUNK_ADDR_SIZE = $clog2(FIFO_CHUNK_SIZE);
 	
-	// FIFO Data Streaming FSM States.
-	typedef enum logic {
-	   IDLE = 1'b0,
-	   WRITE_FIFO = 1'b1
-	} AXI_SLAVE_STATE_e;
-	
 	// FIFO memory
 	logic [C_S_AXIS_TDATA_WIDTH-1:0] stream_data_fifo [0:NUMBER_OF_INPUT_WORDS-1];
 	
-	wire axis_tready;
-	
-	// State variable
-	AXI_SLAVE_STATE_e mst_exec_state;
-	
-	// FIFO level
+	// FIFO Status signals
 	logic [FIFO_LEVEL_SIZE:0] fifo_level;
-	
-	// FIFO full flag.
 	logic fifo_full;
+	// ... and fifo empty which is a port.
 	
-	// FIFO write enable
+	// FIFO r/w enable
 	wire fifo_wren;
-	
-	// FIFO read enable
 	wire fifo_rden;
 	
 	// FIFO pointers
 	logic [FIFO_WR_ADDR_SIZE-1:0] write_pointer;
 	logic [FIFO_RD_ADDR_SIZE-1:0] read_pointer;
 	
-	// sink has accepted all the streaming data and stored in FIFO
-	logic writes_done;
-	
-	// I/O Connections assignments
-	assign S_AXIS_TREADY	= axis_tready;
-	
-	// Control state machine implementation
-	// TODO: Redo FSM as it wastes a clock cycle every tvalid strobe.
-	always @(posedge S_AXIS_ACLK) begin  
-	   if (!S_AXIS_ARESETN) begin // Synchronous reset (active low)
-	       mst_exec_state <= IDLE;
-	   end else
-	       case (mst_exec_state)
-	           IDLE: 
-                   // The sink starts accepting tdata when 
-                   // there tvalid is asserted to mark the
-                   // presence of valid streaming data 
-                   if (S_AXIS_TVALID) begin
-                       mst_exec_state <= WRITE_FIFO;
-                   end else begin
-                       mst_exec_state <= IDLE;
-                   end
-	       
-	           WRITE_FIFO: 
-                   // When the sink has accepted all the streaming input data,
-                   // the interface swiches functionality to a streaming master
-                   if (writes_done) begin
-                       mst_exec_state <= IDLE;
-                   end else begin
-                       // The sink accepts and stores tdata 
-                       // into FIFO
-                       mst_exec_state <= WRITE_FIFO;
-                   end
-	       endcase
-    end
+	// I/O AXI Connections assignments
+	assign S_AXIS_TREADY = !fifo_full; // Always accept data until FIFO is full.
 
     // FIFO Status Flags logic is based on level.
     always_ff @(posedge S_AXIS_ACLK) begin
@@ -111,27 +64,18 @@ module monolith_axis_ip_slave_sif #(
         end
     end
 
-    // Write logic.
-	assign fifo_full = ( fifo_level == (NUMBER_OF_INPUT_WORDS-1) );
-	assign axis_tready = ((mst_exec_state == WRITE_FIFO) && !fifo_full); // Always accept data until FIFO is full.
-    assign fifo_wren = S_AXIS_TVALID && axis_tready;
+    assign fifo_full = ( fifo_level == (NUMBER_OF_INPUT_WORDS-1) );
+    assign fifo_empty = (fifo_level < FIFO_CHUNK_SIZE); // TODO: From a reusability PoV, this is less ideal. Keep empty as is, outside of module compute 'true' empty based on chunk using level.
+
+    // Write logic.	
+    assign fifo_wren = S_AXIS_TVALID && S_AXIS_TREADY && !fifo_full;
     
     always @(posedge S_AXIS_ACLK) begin
         if(!S_AXIS_ARESETN) begin
 	       write_pointer <= 0;
-	       writes_done <= 1'b0;
         end else begin
-            if (fifo_wren && !fifo_full) begin
-                // write pointer is incremented after every write to the FIFO
-                // when FIFO write signal is enabled.
+            if (fifo_wren) begin
                 write_pointer <= write_pointer + 1;
-                writes_done <= 1'b0;
-            end
-            
-            if ((write_pointer == NUMBER_OF_INPUT_WORDS-1) || S_AXIS_TLAST) begin
-                // reads_done is asserted when NUMBER_OF_INPUT_WORDS numbers of streaming data 
-                // has been written to the FIFO which is also marked by S_AXIS_TLAST(kept for optional usage).
-                writes_done <= 1'b1;
             end
        end
 	end
@@ -143,7 +87,6 @@ module monolith_axis_ip_slave_sif #(
     end
 
     // Read logic.
-    assign fifo_empty = (fifo_level < FIFO_CHUNK_SIZE); // TODO: From a reusability PoV, this is less ideal. Keep empty as is, outside of module compute 'true' empty based on chunk using level.
     assign fifo_rden = fifo_read_strobe & !fifo_empty;
     
     always @(posedge S_AXIS_ACLK) begin
