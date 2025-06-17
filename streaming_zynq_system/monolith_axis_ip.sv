@@ -7,7 +7,7 @@ module monolith_axis_ip # (
 	parameter integer C_M00_AXIS_TDATA_WIDTH	= 31,
 	
 	parameter integer PERM_SIZE = 16,
-	parameter integer FIFO_SIZE = 2 // Number of permutations that the FIFO can store.
+	parameter integer FIFO_SIZE = 4 // Number of permutations that the FIFO can store.
 ) (
 	// Ports of Axi Slave Bus Interface S00_AXIS
 	input wire  s00_axis_aclk,

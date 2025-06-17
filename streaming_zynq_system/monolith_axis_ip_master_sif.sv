@@ -33,7 +33,8 @@ module monolith_axis_ip_master_sif #(
 	localparam integer FIFO_CHUNK_ADDR_SIZE = $clog2(FIFO_CHUNK_SIZE);
 	
 	/******* FIFO *******/
-    logic [C_M_AXIS_TDATA_WIDTH-1:0] fifo_mem [0:NUMBER_OF_OUTPUT_WORDS-1]; // memory
+	// TODO: Change something someting here to use block ram (bc why not, might be better?)
+    (*ram_style = "registers" *) logic [C_M_AXIS_TDATA_WIDTH-1:0] fifo_mem [0:NUMBER_OF_OUTPUT_WORDS-1]; // memory
     reg [C_M_AXIS_TDATA_WIDTH-1 : 0] stream_data_out; // serial output
     wire tx_en; // read enable
 	logic fifo_wren; // write enable
