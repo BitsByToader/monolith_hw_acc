@@ -5,7 +5,7 @@ Also provided are sample applications for interfacing with the accelerator via L
 To check out a Rust-wrapped driver for this accelerator, used in a real STARK to prove/verify arguments of knowledge, check out the [sister repo](https://github.com/BitsByToader/Plonky3/).
 
 # Getting started
-Vivado projects inside this repository were created using Vivado 2024.2 on a Linux machine. Might not work in other environments.
+Vivado projects (for 7-series Zynq) inside this repository were created using Vivado 2024.2 on a Linux machine. Might not work in other environments.
 
 1. Clone the repository.
 2. Change the working directory to `work\_dir/`.
