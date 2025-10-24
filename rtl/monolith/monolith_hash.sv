@@ -11,8 +11,10 @@ module monolith_hash #(
     input logic reset,
     
     input logic [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
+    input logic in_valid,
+    
     output logic [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
-    output logic valid
+    output logic out_valid
 );
     
     // (LOCAL) PARAMETERS
@@ -22,38 +24,34 @@ module monolith_hash #(
 
     // INSTANTIATIONS
     logic round_counter_enable;
-    logic [ROUND_COUNTER_SIZE-1:0] round_counter, pre_round;
-    
     logic round_zero;
     logic round_final;
-   
-    logic round_reset; 
-    logic round_valid;
+    logic round_in_valid, round_out_valid;
+    logic [ROUND_COUNTER_SIZE-1:0] round_counter, pre_round;
+    
     
     logic [WORD_WIDTH-1:0] round_input [0:STATE_SIZE-1];
     logic [WORD_WIDTH-1:0] round_output [0:STATE_SIZE-1];
-    
-    logic [WORD_WIDTH-1:0] mytest;
-    assign mytest = round_output[0];
 
     monolith_round #(WORD_WIDTH, STATE_SIZE, BAR_OP_COUNT) round (
-        .clk(clk), .reset(round_reset),
+        .clk(clk), .reset(reset),
         .pre_round(round_zero),
-        .state_in(round_input), .constants(round_constants[pre_round >= ROUND_COUNT ? (ROUND_COUNT-1) : pre_round]),
-        .state_out(round_output), .valid(round_valid)
+        .constants(round_constants[pre_round >= ROUND_COUNT ? (ROUND_COUNT-1) : pre_round]),
+        .state_in(round_input), .input_valid(round_in_valid),
+        .state_out(round_output), .output_valid(round_out_valid)
     );
 
     // (COMBINATORIAL) LOGIC
     assign pre_round = round_zero ? 0 : (round_counter - 1);
     assign round_zero = (round_counter == 0);
     // +1 because counter will hold next round value when processing current round
-    // implemented as such to preprocess next round inputs,to save some cycles.
+    // implemented as such to preprocess next round inputs, to save some cycles.
     assign round_final = (round_counter == ROUND_COUNT+1);
     
     genvar j;
     for (j = 0; j < STATE_SIZE; j=j+1) begin
         assign state_out[j] = (valid == 1) ? round_output[j] : 0;
-    end 
+    end
     
     // (SEQUENTIAL) LOGIC
     typedef enum logic [2:0] {

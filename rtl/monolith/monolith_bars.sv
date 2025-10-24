@@ -10,7 +10,9 @@ module monolith_bars #(
     input logic reset,
     
     input logic [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
-    output logic [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1]
+    input logic input_valid,
+    output logic [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
+    output logic output_valid
 );
 
     logic [WORD_WIDTH-1:0] full_out [0:STATE_SIZE-1];
@@ -37,9 +39,12 @@ module monolith_bars #(
             m31_mod_reduce reduce(reduce_in.rcv, reduce_out.drv);
     
             assign reduce_in.data = full_out[i];
+            // TODO: Maybe register outputs for better timing (might help routing)?
             assign state_out[i] = reduce_out.data;
         end 
     endgenerate
+    
+    assign output_valid = input_valid;
     
 endmodule
 

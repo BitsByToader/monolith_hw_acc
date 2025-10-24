@@ -2,6 +2,8 @@
 `define VECTOR_DOT_PRODUCT_SV
 
 /// Computes the dot product of two vectors.
+/// Proof of concept for the computation, as the module does everything in one clock cycle.
+/// Not really practical.
 module vector_dot_product #(
     int WORD_WIDTH = 31,
     int VECTOR_SIZE = 16

@@ -9,7 +9,9 @@ module monolith_bricks #(
     input logic reset,
     
     input logic [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
-    output logic [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1]
+    input logic input_valid,
+    output logic [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
+    output logic output_valid
 );
 
     // First element is passed through
@@ -40,6 +42,8 @@ module monolith_bricks #(
             assign state_out[i] = add_out.out[WORD_WIDTH-1:0];
         end
     endgenerate
+    
+    assign output_valid = input_valid;
 
 endmodule
 

@@ -9,8 +9,9 @@ module monolith_concrete #(
     input logic reset,
     
     input logic [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
+    input logic input_valid,
     output logic [WORD_WIDTH-1:0] state_out [0:STATE_SIZE-1],
-    output logic valid
+    output logic output_valid
 );
 
     reg [WORD_WIDTH-1:0] mtx [0:STATE_SIZE-1];
@@ -19,13 +20,14 @@ module monolith_concrete #(
         $readmemh("../constants/m31_mds_mtx.mem", mtx);
     end
     
-    circ_mtx_vec_mul #(WORD_WIDTH, STATE_SIZE) mvmul(
+    circ_mtx_vec_mul #(WORD_WIDTH, STATE_SIZE) mv_mul(
         .clk(clk), 
         .reset(reset), 
         .mtx_row(mtx),
         .vec(state_in),
+        .inputs_valid(input_valid),
         .result(state_out),
-        .valid(valid)
+        .result_valid(output_valid)
     );
 
 endmodule

@@ -102,6 +102,15 @@ int main() {
 		return XST_FAILURE;
 	}
 
+    for (int i = 0; i < 16; i++) {
+        *(((u32*)TX_BUFFER_BASE)+i) = 1;
+    }
+    hash_mem_poll((u32*)TX_BUFFER_BASE, (u32*)RX_BUFFER_BASE, sizeof(u32)*16);
+    for (int i = 0; i < 16; i++) {
+        xil_printf("%x ", *(((u32*)RX_BUFFER_BASE)+i));
+    }
+    xil_printf("\r\n");
+
     XTime_GetTime(&time_start);
     // 1mil hashes of whatever garbage is in memory.
     Status = hash_mem_poll((u32*)TX_BUFFER_BASE, (u32*)RX_BUFFER_BASE, sizeof(u32)*16*1000000);
@@ -112,8 +121,7 @@ int main() {
 		return XST_FAILURE;
 	}
 
-    xil_printf("Computation took cycles no: %llu \r\n", 2*(time_end-time_start));
-    xil_printf("Computation took time: %f us\r\n", (1.0f * (time_end-time_start) / (COUNTS_PER_SECOND/1000000.0)));
+    xil_printf("Computation took cycles no: %llu \r\n", time_end-time_start);
 
 	xil_printf("--- Exiting main() --- \r\n");
 

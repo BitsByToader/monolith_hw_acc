@@ -21,3 +21,7 @@ streaming_zynq_system/*bmstub.v
 
 # Ignore Xilinx junk
 **/.Xil/
+
+# Ignore DVT files
+**/.dvt/
+**/dvt_build.log
