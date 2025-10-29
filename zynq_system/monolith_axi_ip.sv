@@ -352,9 +352,12 @@
     // Save output and reset input 
     always_ff @(posedge S_AXI_ACLK) begin
         if (!S_AXI_ARESETN) begin // active low reset
-            slv_reg2 <= 0;
+            slv_reg2 <= '0;
             IRQ_DATA_VALID <= 0;
             monolith_go <= 0;
+			
+			slv_reg0_d <= '0;
+			slv_reg1_d <= '0;
         end else begin
             IRQ_DATA_VALID <= monolith_valid;
             

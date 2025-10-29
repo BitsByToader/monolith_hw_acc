@@ -23,11 +23,12 @@ module vector_dot_product_mc #(
     
     logic [2*WORD_WIDTH:0] full_result;
     logic [2*WORD_WIDTH-1:0] mul_res;
-    logic [WORD_WIDTH-1:0] reduced_result, reduced_result_d, acum_result;
+    logic [WORD_WIDTH-1:0] reduced_result, acum_result;
     
     logic [STAGE_COUNTER_WIDTH-1:0] stage_counter;
     logic [VECTOR_SEL-1:0] element_counter;
-    assign element_counter = (stage_counter >= VECTOR_SIZE) ? (VECTOR_SIZE-1) : stage_counter;
+    // TODO: is bit slice correct, necessary, etc?
+    assign element_counter = (stage_counter >= VECTOR_SIZE) ? (VECTOR_SIZE-1) : stage_counter[VECTOR_SEL-1:0];
 
     mod_reduction_inout_if #(.DATA_WIDTH(2*WORD_WIDTH+1)) reduce_in();
     mod_reduction_inout_if #(.DATA_WIDTH(WORD_WIDTH)) reduce_out();
@@ -56,11 +57,9 @@ module vector_dot_product_mc #(
     always_ff @(posedge clk) begin
         if (reset) begin
             acum_result <= 0;
-            reduced_result_d <= 0;
         end else begin
             if (!valid)
                 acum_result <= reduced_result;
-                reduced_result_d <= reduced_result;
         end
     end
 

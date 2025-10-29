@@ -17,7 +17,7 @@ module monolith_concrete #(
     reg [WORD_WIDTH-1:0] mtx [0:STATE_SIZE-1];
 
     initial begin
-        $readmemh("../constants/m31_mds_mtx.mem", mtx);
+        $readmemh("m31_mds_mtx.mem", mtx);
     end
     
     circ_mtx_vec_mul #(WORD_WIDTH, STATE_SIZE) mv_mul(

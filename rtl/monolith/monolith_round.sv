@@ -11,7 +11,7 @@ module monolith_round #(
    
     input logic [WORD_WIDTH-1:0] constants [0:STATE_SIZE-1],
    
-    input logic pre_round,
+    // input logic pre_round,
     input logic [WORD_WIDTH-1:0] state_in [0:STATE_SIZE-1],
     input logic input_valid,
     

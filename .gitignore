@@ -22,6 +22,9 @@ streaming_zynq_system/*bmstub.v
 # Ignore Xilinx junk
 **/.Xil/
 
-# Ignore DVT files
+# Ignore DVT files (junk?)
 **/.dvt/
 **/dvt_build.log
+
+# Ignore vscode junk
+**/.vscode/

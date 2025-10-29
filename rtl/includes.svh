@@ -23,6 +23,6 @@
 `include "monolith/monolith_bricks.sv"
 `include "monolith/monolith_concrete.sv"
 `include "monolith/monolith_round.sv"
-//`include "monolith/monolith_hash.sv"
+`include "monolith/monolith_hash.sv"
 
 `endif

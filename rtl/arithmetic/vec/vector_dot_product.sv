@@ -34,7 +34,7 @@ module vector_dot_product #(
             
             assign mul_in.in1 = vec1[i];
             assign mul_in.in2 = vec2[i];
-            assign alu_outputs[VECTOR_SIZE+i-1] = mul_out.out;
+            assign alu_outputs[VECTOR_SIZE+i-1] = mul_out.out[30:0];
         end
     endgenerate
     
@@ -48,7 +48,7 @@ module vector_dot_product #(
             
             assign add_in.in1 = alu_outputs[j*2+1];
             assign add_in.in2 = alu_outputs[j*2+2];
-            assign alu_outputs[j] = add_out.out;
+            assign alu_outputs[j] = add_out.out[30:0];
         end
     endgenerate
     

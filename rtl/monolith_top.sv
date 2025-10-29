@@ -19,27 +19,39 @@ module monolith_top(
     logic [30:0] state_in [0:15];
     logic [30:0] state_out [0:15];
 
+    logic go_d, go_rose, go_rose_d;
+    assign go_rose = ~go & go_d;
+    
+    always_comb begin
+        for (int i = 0; i < 16; i=i+1) begin
+            state_in[i] = 0;
+        end
+        
+        state_in[0] = in1;
+        state_in[1] = (hash_or_compress == 1) ? in2 : 0;
+    end
+    
+    always_ff @(posedge clk) begin
+        if (reset) begin
+            go_d <= 0;
+            go_rose_d <= 0;
+        end else begin
+            go_d <= go;
+            go_rose_d <= go_rose;
+        end
+    end
+    
     monolith_hash hash(
-        .clk(clk),
-        .reset(~go),
-        .state_in(state_in),
-        .state_out(state_out),
-        .valid(valid)
+        .clk        (clk),
+        .reset      (reset | ~go),
+        .state_in   (state_in),
+        .in_valid   (go_rose_d),
+        .state_out  (state_out),
+        .out_valid  (valid)
     );
     
     assign out = state_out[0];
     
-    always_ff @(posedge clk) begin
-        if (reset) begin
-            for (int i = 0; i < 16; i=i+1) begin
-                state_in[i] <= 0;
-            end
-        end else begin
-            state_in[0] <= in1;
-            state_in[1] <= (hash_or_compress == 1) ? in2 : 0;
-        end
-    end
-
 endmodule
 
 `endif
