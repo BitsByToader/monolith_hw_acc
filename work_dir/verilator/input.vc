@@ -1,0 +1,10 @@
+// This file typically lists flags required by a large project, e.g. include directories
+-work work_lib
++librescan
++libext+.v+.sv+.vh+.svh
+-y
+.
+-I../../rtl/
+-I../../testbench/
+-I../../zynq_system/
+-I../../streaming_zynq_system/

@@ -2,6 +2,13 @@
 work_dir/*
 !work_dir/*.tcl
 
+# Also allow verilator build config files.
+!work_dir/verilator
+work_dir/verilator/*
+!work_dir/verilator/input.vc
+!work_dir/verilator/Makefile
+!work_dir/verilator/Makefile_obj
+
 # Block design and IP integrator tend to generate a lot of files where the .bd (block design) file is held. Ignore them, but keep (block)design files.
 zynq_system/*
 !zynq_system/*.v

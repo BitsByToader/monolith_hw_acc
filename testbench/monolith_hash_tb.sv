@@ -18,7 +18,7 @@ module monolith_hash_tb();
         );
     
     initial begin
-        $dumpfile("dump.vcd");
+        $dumpfile("dump.fst");
         $dumpvars();
         
         clk = 1; reset = 1;
