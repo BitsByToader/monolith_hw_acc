@@ -56,12 +56,12 @@ VERILATOR_FLAGS += --assert
 # Enable Verilog timing
 VERILATOR_FLAGS += --timing
 # Set top module
-VERILATOR_FLAGS += -top monolith_hash_tb
+VERILATOR_FLAGS += -top $(top_module)
 # Set generic prefix
 VERILATOR_FLAGS += -prefix Vtop
 
 # Set top file
-VERILATOR_INPUT += monolith_hash_tb.sv
+VERILATOR_INPUT += $(top_file)
 # Input files for Verilator
 VERILATOR_INPUT += -f input.vc
 
@@ -100,8 +100,8 @@ run:
 	@echo
 	@echo "-- COVERAGE ----------------"
 	@rm -rf logs/annotated
-	@echo "NO COVERAGE"
-	#$(VERILATOR_COVERAGE) --annotate logs/annotated logs/coverage.dat
+	@echo "NO COVERAGE CONFIGURED"
+# $(VERILATOR_COVERAGE) --annotate logs/annotated logs/coverage.dat
 
 	@echo
 	@echo "-- DONE --------------------"
