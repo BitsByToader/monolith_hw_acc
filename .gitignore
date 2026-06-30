@@ -36,3 +36,5 @@ streaming_zynq_system/*bmstub.v
 
 # Ignore vscode junk
 **/.vscode/
+
+runs/

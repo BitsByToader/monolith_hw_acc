@@ -16,8 +16,15 @@ module monolith_concrete #(
 
     reg [WORD_WIDTH-1:0] mtx [0:STATE_SIZE-1];
 
+    `ifndef MTX_MEM_FILE
+        `define MTX_MEM_FILE "/Users/tudor/Developer/monolith_asic_test/rtl/constants/m31_mds_mtx.mem"
+    `endif
+
     initial begin
-        $readmemh("m31_mds_mtx.mem", mtx);
+        for(int i = 0; i < STATE_SIZE;i=i+1) begin
+            mtx[i] = i;
+        end
+        $readmemh(`MTX_MEM_FILE, mtx);
     end
     
     circ_mtx_vec_mul #(WORD_WIDTH, STATE_SIZE) mv_mul(

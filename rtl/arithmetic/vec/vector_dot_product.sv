@@ -11,10 +11,10 @@ module vector_dot_product #(
     input logic clk,
     input logic reset,
     
-    input bit [WORD_WIDTH-1:0] vec1 [0:VECTOR_SIZE-1],
-    input bit [WORD_WIDTH-1:0] vec2 [0:VECTOR_SIZE-1],
+    input logic [WORD_WIDTH-1:0] vec1 [0:VECTOR_SIZE-1],
+    input logic [WORD_WIDTH-1:0] vec2 [0:VECTOR_SIZE-1],
     
-    output bit [WORD_WIDTH-1:0] result
+    output logic [WORD_WIDTH-1:0] result
 );
 
     // Holds all outputs computed by execution elements.

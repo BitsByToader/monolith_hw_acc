@@ -59,9 +59,17 @@ module monolith_hash #(
 
     assign state_out = round_output[ROUND_COUNT-1];
     assign out_valid = round_output_valid[ROUND_COUNT-1];
-    
+   
+    `ifndef ROUND_CONSTANTS_MEM_FILE
+        `define ROUND_CONSTANTS_MEM_FILE "/Users/tudor/Developer/monolith_asic_test/rtl/constants/monolith_6round_constants.mem"
+    `endif
+
     initial begin
-        $readmemh("monolith_6round_constants.mem", round_constants);
+        for(int i = 0; i < STATE_SIZE;i=i+1) begin
+            for (int j = 0; j < ROUND_COUNT;j=j+1)
+                round_constants[j][i] = j+i;
+        end
+        $readmemh(`ROUND_CONSTANTS_MEM_FILE, round_constants);
     end
 
 endmodule
