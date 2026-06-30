@@ -4,6 +4,10 @@
 `include "includes.svh"
 
 module monolith_top(
+    `ifdef USE_POWER_PINS
+    inout VGND,
+    inout VPWR,
+    `endif
     input logic clk, // Clocked on positive edge
     input logic reset, // Active high
     
