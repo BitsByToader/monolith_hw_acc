@@ -36,8 +36,8 @@ module m31_multiplier_pl #(
     
     inferred_multiplier_pl #(PIPELINE_STAGES) mul (inputs, unreduced_mul);
     
-    mod_reduction_inout_if #(.DATA_WIDTH(unreduced_mul.OUTPUT_DATA_WIDTH)) reduce_in();
-    mod_reduction_inout_if #(.DATA_WIDTH(unreduced_mul.OUTPUT_DATA_WIDTH)) reduce_out();
+    mod_reduction_inout_if #(.DATA_WIDTH(outputs.OUTPUT_DATA_WIDTH)) reduce_in();
+    mod_reduction_inout_if #(.DATA_WIDTH(outputs.OUTPUT_DATA_WIDTH)) reduce_out();
     assign reduce_in.data = unreduced_mul.out;
     
     m31_mod_reduce reduce(reduce_in.rcv, reduce_out.drv);

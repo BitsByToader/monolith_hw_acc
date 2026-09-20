@@ -25,7 +25,7 @@ module monolith_bricks #(
             adder_input_if #(WORD_WIDTH) add_in();
             adder_output_if #(WORD_WIDTH+1) add_out();
             
-            m31_multiplier mul(mul_in, mul_out);
+            m31_multiplier mul(mul_in.async_rcv, mul_out.async_drv);
             m31_adder add(add_in.async_rcv, add_out.async_drv);
             
             assign mul_out.clk = clk;

@@ -1,7 +1,9 @@
 `ifndef MONOLITH_CONCRETE_SV
 `define MONOLITH_CONCRETE_SV
 
-module monolith_concrete #(
+`include "../includes.svh"
+
+module monolith_concrete_behav #(
     int WORD_WIDTH = 31,
     int STATE_SIZE = 16
 ) (
@@ -24,7 +26,7 @@ module monolith_concrete #(
         for(int i = 0; i < STATE_SIZE;i=i+1) begin
             mtx[i] = i;
         end
-        $readmemh(`MTX_MEM_FILE, mtx);
+        //$readmemh(`MTX_MEM_FILE, mtx);
     end
     
     circ_mtx_vec_mul #(WORD_WIDTH, STATE_SIZE) mv_mul(

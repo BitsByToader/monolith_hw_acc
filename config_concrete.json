@@ -1,0 +1,27 @@
+{
+    "DESIGN_NAME": "monolith_concrete_behav",
+    "VERILOG_FILES": [
+        "dir::rtl/monolith/monolith_concrete.sv"
+    ],
+    "VERILOG_DEFINES": [
+        "ROUND_CONSTANTS_MEM_FILE=\"dir::/rtl/constants/m31_mds_mtx.mem\"",
+        "MTX_MEM_FILE=\"dir::/rtl/constants/monolith_6round_constants.mem\""
+    ],
+
+    "CLOCK_PORT": "clk",
+    "CLOCK_PERIOD": 40,
+
+    "VDD_NETS": ["VDD"],
+    "GND_NETS": ["VSS"],
+
+    "IO_PIN_ORDER_CFG": "dir::concrete_pin_order.cfg",
+
+    "USE_SLANG": "True",
+    "SYNTH_MUL_BOOTH": "True",
+    "SYNTH_STRATEGY": "DELAY 4",
+
+    "FP_CORE_UTIL": 40,
+    "DRT_OPT_ITERS": 20,
+	"GRT_ALLOW_CONGESTION": "True",
+	"MAGIC_EXT_UNIQUE": "notopports"
+}

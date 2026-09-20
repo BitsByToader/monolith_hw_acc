@@ -4,10 +4,6 @@
 `include "includes.svh"
 
 module monolith_top(
-    `ifdef USE_POWER_PINS
-    inout VGND,
-    inout VPWR,
-    `endif
     input logic clk, // Clocked on positive edge
     input logic reset, // Active high
     
@@ -27,12 +23,12 @@ module monolith_top(
     assign go_rose = ~go & go_d;
     
     always_comb begin
-        for (int i = 0; i < 16; i=i+1) begin
+        for (int i = 2; i < 16; i=i+1) begin
             state_in[i] = 0;
         end
         
         state_in[0] = in1;
-        state_in[1] = (hash_or_compress == 1) ? in2 : 0;
+        state_in[1] = (hash_or_compress === 1) ? in2 : 0;
     end
     
     always_ff @(posedge clk) begin

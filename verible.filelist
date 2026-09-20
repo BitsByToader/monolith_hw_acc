@@ -12,6 +12,7 @@
 ./rtl/interfaces/mod_reduction_if.svh
 ./rtl/interfaces/multiplier_if.svh
 ./rtl/monolith_top.sv
+./rtl/monolith_chip.sv
 ./rtl/monolith/monolith_bars.sv
 ./rtl/monolith/monolith_bricks.sv
 ./rtl/monolith/monolith_concrete.sv

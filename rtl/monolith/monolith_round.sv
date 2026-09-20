@@ -48,11 +48,29 @@ module monolith_round #(
         bricks_output, bricks_out_valid
     );
     // Pipeline Stage.
-    monolith_concrete #(WORD_WIDTH, STATE_SIZE) concrete(
+    `ifdef __pnr__
+    logic [495:0] macro_in, macro_out;
+    always_comb begin
+    	for (int i = 0; i < STATE_SIZE; i++) begin
+        	macro_in[i*WORD_WIDTH +: WORD_WIDTH] = concrete_input[i];
+            concrete_output[i] = macro_out[i*WORD_WIDTH +: WORD_WIDTH];
+    	end
+	end
+
+    monolith_concrete concrete(
+        `ifdef USE_POWER_PINS
+        `endif
+        .clk(clk), .reset(reset),
+        .state_in(macro_in), .input_valid(concrete_in_valid),
+        .state_out(macro_out), .output_valid(concrete_out_valid)
+    );
+    `else
+    monolith_concrete_behav #(WORD_WIDTH, STATE_SIZE) concrete(
         .clk(clk), .reset(reset),
         .state_in(concrete_input), .input_valid(concrete_in_valid),
         .state_out(concrete_output), .output_valid(concrete_out_valid)
     );
+    `endif
     // Pipeline Stage.
     vector_adder #(WORD_WIDTH, STATE_SIZE) add_constants(
         constants_input, constants,

@@ -1,25 +1,184 @@
 {
     "meta": {
-        "flow": "Classic"
+        "flow": "Chip",
+        "substituting_steps": { 
+            "OpenRoad.IRDropReport": null,
+            
+            "KLayout.DRC": null,
+            "Magic.DRC": null,
+            
+            "KLayout.Antenna": null,
+            "Checker.KLayoutAntenna": null,
+            
+            "Checker.IllegalOverlap": null,
+        
+            "OpenROAD.STAPrePNR": null,
+            "OpenROAD.STAMidPNR*": null
+        }
     },
-    "DESIGN_NAME": "monolith_top",
     
+    "DESIGN_NAME": "monolith_chip",
     "VERILOG_FILES": [
+        "dir::rtl/monolith_chip.sv",
         "dir::rtl/monolith_top.sv"
     ],
     "VERILOG_DEFINES": [
         "ROUND_CONSTANTS_MEM_FILE=\"dir::/rtl/constants/m31_mds_mtx.mem\"",
         "MTX_MEM_FILE=\"dir::/rtl/constants/monolith_6round_constants.mem\""
     ],
-    
-    "CLOCK_PERIOD": 25,
-    "CLOCK_PORT": "clk",
-    "IO_PIN_ORDER_CFG": "dir::pin_order.cfg",
-    "VERILOG_POWER_DEFINE": "USE_POWER_PINS",
 
+    "PNR_SDC_FILE": "dir::constraints.sdc",
+    "SIGNOFF_SDC_FILE": "dir::constraints.sdc",
+    "FALLBACK_SDC": "dir::constraints.sdc",
+
+    "CLOCK_PORT": "clk_PAD",
+    "CLOCK_NET": "clk_pad/p2c",
+    "CLOCK_PERIOD": 40,
+
+    "VDD_NETS": ["VDD"],
+    "GND_NETS": ["VSS"],
+    "VERILOG_POWER_DEFINE": "USE_POWER_PINS",
+    
+    "PAD_NORTH": [
+        "clk_pad",
+        "rst_pad",
+        "in1_pad",
+        "in2_pad",
+        "horc_pad",
+        "go_pad"
+    ],
+    "PAD_SOUTH": [
+        "out_pad",
+        "valid_pad"
+    ],
+    "PAD_WEST": [
+        "iovdd_pad",
+        "iovss_pad"
+    ],
+    "PAD_EAST": [
+        "vdd_pad",
+        "vss_pad"
+    ],
+
+	"PDN_CORE_RING": "True",
+	"PAD_BONDPAD_NAME": "bondpad_70x70_novias",
+
+	"EXTRA_GDS": [
+		"dir::ip/bondpad_70x70_novias/gds/bondpad_70x70_novias.gds"
+	],
+	"EXTRA_LEFS": [
+		"dir::ip/bondpad_70x70_novias/lef/bondpad_70x70_novias.lef"
+	],
+	"IGNORE_DISCONNECTED_MODULES": [
+		"bondpad_70x70_novias"
+	],
+
+    "MACROS": {
+        "monolith_concrete": {
+            "gds": [
+                "dir::concrete_macro/gds/monolith_concrete.gds"
+            ],
+            "lef": [
+                "dir::concrete_macro/lef/monolith_concrete.lef"
+            ],
+            "vh": [
+                "dir::concrete_macro/vh/monolith_concrete.vh"
+            ],
+            "lib": {
+                "*_typ_1p20V_25C": [
+                    "dir::concrete_macro/lib/nom_typ_1p20V_25C/monolith_concrete__nom_typ_1p20V_25C.lib"
+                ],
+                "*_fast_1p32V_m40C": [
+                    "dir::concrete_macro/lib/nom_fast_1p32V_m40C/monolith_concrete__nom_fast_1p32V_m40C.lib"
+                ],
+                "*_slow_1p08V_125C": [
+                    "dir::concrete_macro/lib/nom_slow_1p08V_125C/monolith_concrete__nom_slow_1p08V_125C.lib"
+                ]
+            },
+            "sdf": {
+                "*_typ_1p20V_25C": [
+                    "dir::concrete_macro/sdf/nom_typ_1p20V_25C/monolith_concrete__nom_typ_1p20V_25C.sdf"
+                ],
+                "*_fast_1p32V_m40C": [
+                    "dir::concrete_macro/sdf/nom_fast_1p32V_m40C/monolith_concrete__nom_fast_1p32V_m40C.sdf"
+                ],
+                "*_slow_1p08V_125C": [
+                    "dir::concrete_macro/sdf/nom_slow_1p08V_125C/monolith_concrete__nom_slow_1p08V_125C.sdf"
+                ]
+            },
+            "pnl": [
+                "dir::concrete_macro/pnl/monolith_concrete.pnl.v"
+            ],
+            "nl": [
+                "dir::concrete_macro/nl/monolith_concrete.nl.v"
+            ],
+            "spef": {
+                "nom_*": [
+                    "dir::concrete_macro/spef/nom/monolith_concrete.nom.spef"
+                ]
+            },
+            "instances": {
+                "core.hash.pre_round": {
+                    "location": [1000, 1000],
+                    "orientation": "N"
+                },
+                "core.hash.genblk1[0].round.concrete" : {
+                    "location": [1000, 5000],
+                    "orientation": "N"
+                },
+                "core.hash.genblk1[1].round.concrete" : {
+                    "location": [1000, 9000],
+                    "orientation": "N"
+                },
+                "core.hash.genblk1[2].round.concrete" : {
+                    "location": [1000, 13000],
+                    "orientation": "N"
+                },
+                "core.hash.genblk1[3].round.concrete" : {
+                    "location": [1000, 17000],
+                    "orientation": "N"
+                },
+                "core.hash.genblk1[4].round.concrete" : {
+                    "location": [1000, 21000],
+                    "orientation": "N"
+                },
+                "core.hash.genblk1[5].round.concrete" : {
+                    "location": [1000, 25000],
+                    "orientation": "N"
+                }
+            }
+        }
+    },
+
+    "PDN_MACRO_CONNECTIONS": [
+        "core.hash.pre_round VDD VSS VDD VSS",
+        "core.hash.genblk1.*round.concrete VDD VSS VDD VSS"
+    ],
+    "PDN_CONNECT_MACROS_TO_GRID": "True",
+    "PDN_ENABLE_GLOBAL_CONNECTIONS": "True",
+    "ERROR_ON_PDN_VIOLATIONS": "False",
+
+    "PDN_CFG": "dir::pdn_cfg.tcl",
+
+	"PDN_CORE_RING_VWIDTH": 15,
+	"PDN_CORE_RING_HWIDTH": 15,
+	"PDN_CORE_RING_VSPACING": 5,
+	"PDN_CORE_RING_HSPACING": 5,
+
+	"PDN_CORE_RING_CONNECT_TO_PADS": "True",
+	"PDN_ENABLE_PINS": "False",
+
+	
     "USE_SLANG": "True",
     "SYNTH_MUL_BOOTH": "True",
+    "SYNTH_STRATEGY": "DELAY 4",
 
+    "DIE_AREA": [0,0,10000,30000],
+    "CORE_AREA": [365, 365, 9635, 29635],
+    "FP_SIZING": "absolute",
     "FP_CORE_UTIL": 40,
-    "DRT_OPT_ITERS": 20
+    "DRT_OPT_ITERS": 20,
+	"PL_TARGET_DENSITY_PCT": 10,
+	"GRT_ALLOW_CONGESTION": "True",
+	"MAGIC_EXT_UNIQUE": "notopports"
 }

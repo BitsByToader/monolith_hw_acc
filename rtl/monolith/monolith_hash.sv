@@ -25,14 +25,35 @@ module monolith_hash #(
     logic [WORD_WIDTH-1:0] round_output [0:ROUND_COUNT-1][0:STATE_SIZE-1];
     logic round_output_valid [0:ROUND_COUNT-1];
 
-    monolith_concrete #(WORD_WIDTH, STATE_SIZE) pre_round (
+    `ifdef __pnr__
+    logic [495:0] macro_in, macro_out;
+    always_comb begin
+    	for (int i = 0; i < STATE_SIZE; i++) begin
+        	macro_in[i*WORD_WIDTH +: WORD_WIDTH] = state_in[i];
+            round_input[0][i] = macro_out[i*WORD_WIDTH +: WORD_WIDTH];
+    	end
+	end
+
+    monolith_concrete pre_round (
+        `ifdef USE_POWER_PINS
+        `endif
+        .clk            (clk),
+        .reset          (reset),
+        .state_in       (macro_in),
+        .input_valid    (in_valid),
+        .state_out      (macro_out),
+        .output_valid   (round_input_valid[0])
+    );
+    `else
+    monolith_concrete_behav #(WORD_WIDTH, STATE_SIZE) pre_round (
         .clk            (clk),
         .reset          (reset),
         .state_in       (state_in),
         .input_valid    (in_valid),
         .state_out      (round_input[0]),
         .output_valid   (round_input_valid[0])
-    );
+    ); 
+    `endif
 
     generate
         for (genvar i = 0; i < ROUND_COUNT; i=i+1) begin
